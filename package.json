@@ -14,7 +14,7 @@
     "types": "tsc --project tsconfig.build.json",
     "madge": "madge --circular lib/",
     "jsdoc": "jsdoc -c jsdoc/jsdoc.json --verbose --debug",
-    "pages": "gh-pages -d docs",
+    "pages": "gh-pages -d @-0/spool",
     "docs": "npm run types && npm run jsdoc",
     "patch": "npm version patch && npm run docs && npm run pages && npm publish",
     "tests": "npm run types && npm run madge && jest",
