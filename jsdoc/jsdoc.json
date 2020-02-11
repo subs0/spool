@@ -7,10 +7,10 @@
   "source": {
     "include": ["src", "README.md"],
     "includePattern": "\\.(jsx|js|ts|tsx)$",
-    "excludePattern": "(node_modules/|spule/)"
+    "excludePattern": "(node_modules/|spool/)"
   },
   "templates": {
-    "referenceTitle": "`-0` docs",
+    "referenceTitle": "`@-0/spool` docs",
     "disableSort": true,
     "collapse": false,
     "resources": {
