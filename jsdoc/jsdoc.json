@@ -1,0 +1,27 @@
+{
+  "tags": {
+    "allowUnknownTags": true,
+    "dictionaries": ["jsdoc"]
+  },
+  "plugins": ["plugins/markdown", "node_modules/better-docs/typescript"],
+  "source": {
+    "include": ["src", "README.md"],
+    "includePattern": "\\.(jsx|js|ts|tsx)$",
+    "excludePattern": "(node_modules/|spule/)"
+  },
+  "templates": {
+    "referenceTitle": "`-0` docs",
+    "disableSort": true,
+    "collapse": false,
+    "resources": {
+      "@thi.ng/umbrella": "http://thi.ng/umbrella"
+    }
+  },
+  "opts": {
+    "package": "./package.json",
+    "destination": ".",
+    "encoding": "utf8",
+    "recurse": true,
+    "template": "node_modules/better-docs"
+  }
+}

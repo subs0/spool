@@ -1,0 +1,72 @@
+{
+  "name": "@-0/spool",
+  "author": "Logan Powell",
+  "license": "MIT",
+  "version": "0.2.51",
+  "description": "SPA framework built on top of http://thi.ng/umbrella ecosystem",
+  "main": "./lib/index.js",
+  "type": "module",
+  "types": "./lib/index.d.ts",
+  "repository": "https://github.com/subs0/ingtegration",
+  "homepage": "https://github.com/subs0/ingtegration",
+  "scripts": {
+    "clean": "rm -rf .cache build dist",
+    "madge": "madge --circular lib/",
+    "typewatch": "tsc --project tsconfig.json",
+    "types": "tsc --project tsconfig.build.json",
+    "jsdoc": "jsdoc -c jsdoc/jsdoc.json --verbose --debug",
+    "build": "npm run clean && cross-env NODE_ENV=production parcel build example/index.html -d spule --no-source-maps --no-cache --public-url ./",
+    "pages": "npm run build && gh-pages -d spule",
+    "docs": "npm run types && npm run jsdoc",
+    "patch": "npm version patch && npm run docs && npm run pages && npm publish",
+    "tests": "npm run types && npm run madge && jest",
+    "postgit": "git push origin master && npm run patch",
+    "git": "git add . && git commit -m",
+    "start": "npm run types && parcel example/index.html --global md -p 8080 --open -d dist watch"
+  },
+  "keywords": [
+    "thi.ng",
+    "multiplex",
+    "FRP"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@thi.ng/arrays": "latest",
+    "@thi.ng/associative": "latest",
+    "@thi.ng/transducers": "latest",
+    "@thi.ng/checks": "latest",
+    "@thi.ng/paths": "latest",
+    "@thi.ng/rstream": "latest",
+    "@thi.ng/atom": "latest"
+  },
+  "dependencies": {
+    "@-0/keys": "latest",
+    "@-0/utils": "latest"
+  },
+  "devDependencies": {
+    "@thi.ng/arrays": "latest",
+    "@thi.ng/associative": "latest",
+    "@thi.ng/transducers": "latest",
+    "@thi.ng/checks": "latest",
+    "@thi.ng/paths": "latest",
+    "@thi.ng/rstream": "latest",
+    "@thi.ng/atom": "latest",
+    "@typescript-eslint/eslint-plugin": "^2.19.0",
+    "@typescript-eslint/parser": "^2.19.0",
+    "better-docs": "^1.4.7",
+    "cross-env": "^7.0.0",
+    "eslint": "^6.8.0",
+    "gh-pages": "^2.2.0",
+    "jest": "^25.1.0",
+    "prettier": "^1.19.1"
+  },
+  "prettier": {
+    "singleQuote": false,
+    "printWidth": 100,
+    "endOfLine": "lf",
+    "tabWidth": 2,
+    "semi": false
+  }
+}
