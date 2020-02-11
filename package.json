@@ -10,9 +10,9 @@
   "repository": "https://github.com/subs0/ingtegration",
   "homepage": "https://github.com/subs0/ingtegration",
   "scripts": {
-    "madge": "madge --circular lib/",
     "typewatch": "tsc --project tsconfig.json",
     "types": "tsc --project tsconfig.build.json",
+    "madge": "madge --circular lib/",
     "jsdoc": "jsdoc -c jsdoc/jsdoc.json --verbose --debug",
     "pages": "gh-pages -d docs",
     "docs": "npm run types && npm run jsdoc",
