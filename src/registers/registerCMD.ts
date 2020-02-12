@@ -6,6 +6,7 @@ import { map } from "@thi.ng/transducers"
 import { isFunction } from "@thi.ng/checks"
 import { getIn } from "@thi.ng/paths"
 import { IAtom } from "@thi.ng/atom"
+import { ISubscribable } from "@thi.ng/rstream"
 
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, $$_CMDS } from "@-0/keys"
 
@@ -14,16 +15,14 @@ import { $store$ } from "../store"
 
 import { xKeyError, stringify_w_functions, diff_keys } from "@-0/utils"
 
-const feedCMD$fromSource$ = cmd => {
+export const supplement$CMD = (cmd: Object, to$: ISubscribable<any>) => {
+  const sup$: ISubscribable<any> = cmd[CMD_SRC$]
   const sub$ = cmd[CMD_SUB$]
   const args = cmd[CMD_ARGS]
   const isFn = isFunction(args)
-  const deliver = x => ({ [CMD_SUB$]: sub$, [CMD_ARGS]: args(x) })
-  const delivery = { [CMD_SUB$]: sub$, [CMD_ARGS]: args }
-
-  const feed = $ => (isFn ? map(x => $.next(deliver(x))) : map(() => $.next(delivery)))
-
-  return cmd[CMD_SRC$].subscribe(feed(command$))
+  const load = (x = null) => ({ [CMD_SUB$]: sub$, [CMD_ARGS]: x ? args(x) : args })
+  const xport = $ => map(x => $.next(isFn ? load(x) : load()))
+  return sup$.subscribe(xport(to$))
 }
 
 const err_str = "command Registration `registerCMD`"
@@ -78,7 +77,7 @@ export const registerCMDtoStore = (store: IAtom<any>) => (command: Object = null
     throw new Error(xKeyError(err_str, command, unknowns, sub$, undefined))
   }
 
-  if (src$) feedCMD$fromSource$(command)
+  if (src$) supplement$CMD(command, command$)
 
   // @ts-ignore
   out$.subscribeTopic(
