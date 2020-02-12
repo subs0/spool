@@ -114,4 +114,4 @@ export function registerCMD(command) {
  * if using Chrome, there's an additional advantage of being
  * able to find the `[[FunctionLocation]]` of the Command
  */
-registerCMD.all = registered
+registerCMD.all = () => registered.entries()
