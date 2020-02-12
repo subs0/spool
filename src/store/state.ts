@@ -8,8 +8,7 @@ import { isPlainObject } from "@thi.ng/checks"
 import { $$_DEFAULT, $$_LOAD, DefaultDraft } from "@-0/keys"
 
 // Global $store$ Container from [@thi.ng/atom](http://thi.ng/atom)
-
-export const $store$ = new Atom($$_DEFAULT)
+export const $store$: any = new Atom($$_DEFAULT)
 
 /**
  *
