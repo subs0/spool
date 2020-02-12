@@ -48,7 +48,7 @@ export const registerRouter = router => {
  *
  * Options Object keys
  * - root   : DOM mount node
- * - app    : root application node
+ * - view   : root data view (app)
  * - draft  : state scaffolding Object
  * - router : url matching function or config Object
  * - trace  : string triggers logs prepended with it
