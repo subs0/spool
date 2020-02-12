@@ -5,7 +5,7 @@
 import { Atom } from "@thi.ng/atom"
 import { isPlainObject } from "@thi.ng/checks"
 
-import { $$_DEFAULT } from "@-0/keys"
+import { $$_DEFAULT, $$_LOAD } from "@-0/keys"
 
 // Global $store$ Container from [@thi.ng/atom](http://thi.ng/atom)
 export const $store$ = new Atom($$_DEFAULT)
