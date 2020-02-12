@@ -7,8 +7,8 @@
   "main": "./lib/index.js",
   "type": "module",
   "types": "./lib/index.d.ts",
-  "repository": "https://github.com/subs0/ingtegration",
-  "homepage": "https://github.com/subs0/ingtegration",
+  "repository": "https://github.com/subs0/spool",
+  "homepage": "https://github.com/subs0/spool",
   "scripts": {
     "typewatch": "tsc --project tsconfig.json",
     "types": "tsc --project tsconfig.build.json",
