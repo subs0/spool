@@ -4,10 +4,13 @@
 
 import { map } from "@thi.ng/transducers"
 import { isFunction } from "@thi.ng/checks"
+import { getIn } from "@thi.ng/paths"
+import { IAtom } from "@thi.ng/atom"
 
-import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK } from "@-0/keys"
+import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, $$_CMDS } from "@-0/keys"
 
 import { command$, out$ } from "../core"
+import { $store$ } from "../store"
 
 import { xKeyError, stringify_w_functions, diff_keys } from "@-0/utils"
 
@@ -23,9 +26,8 @@ const feedCMD$fromSource$ = cmd => {
   return cmd[CMD_SRC$].subscribe(feed(command$))
 }
 
-let registered = new Map()
-
 const err_str = "command Registration `registerCMD`"
+
 /**
  *
  *
@@ -54,7 +56,13 @@ const err_str = "command Registration `registerCMD`"
  *  4. `src$` (optional, enables stream to feed Command)
  *
  */
-export function registerCMD(command) {
+export const registerCMDtoStore = (store: IAtom<any>) => (command: Object = null) => {
+  /**
+   * enables inspection of the existing Command registrations
+   * if using Chrome, there's an additional advantage of being
+   * able to find the `[[FunctionLocation]]` of the Command
+   */
+  if (!command) return getIn(store.deref(), $$_CMDS)
   const sub$ = command[CMD_SUB$]
   const args = command[CMD_ARGS]
   const erro = command[CMD_ERRO]
@@ -87,31 +95,24 @@ export function registerCMD(command) {
         [CMD_ERRO]: erro
       }
     : { [CMD_SUB$]: sub$, [CMD_ARGS]: args }
-  // Set.add not supported by IE
-  if (registered.set) {
-    if (registered.has(sub$)) {
-      throw new Error(
-        `
+  if (getIn(store.deref(), [$$_CMDS, sub$])) {
+    throw new Error(
+      `
 
-  🔥 duplicate \`sub$\` value detected in Command:
-  ${stringify_w_functions(CMD)}
-  existing registered Commands:
-  ${JSON.stringify([...registered.keys()], null, 2)}
-  🔥 Please use a different/unique Command \`sub$\` string
+    🔥 duplicate \`sub$\` value detected in Command:
+    ${stringify_w_functions(CMD)}
+    existing registered Commands:
+    ${JSON.stringify(getIn(store.deref(), $$_CMDS), null, 2)}
+    🔥 Please use a different/unique Command \`sub$\` string
 
-  🔎 Inspect existing Commands using js Map API \`registerCMD.all\`
-  🔎 (\`registerCMD.all.entries()\`, \`registerCMD.all.has("X")\`, etc.)
+    🔎 Inspect existing Commands using empty call: \`registerCMD()\`
 
-        `
-      )
-    }
-    registered.set(sub$, CMD)
+      `
+    )
   }
+  //@ts-ignore
+  store.swapIn($$_CMDS, x => ({ ...x, [sub$.toString()]: CMD }))
   return CMD
 }
-/**
- * enables inspection of the existing Command registrations
- * if using Chrome, there's an additional advantage of being
- * able to find the `[[FunctionLocation]]` of the Command
- */
-registerCMD.all = () => registered.entries()
+
+export const registerCMD = registerCMDtoStore($store$)
