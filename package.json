@@ -39,8 +39,8 @@
     "@thi.ng/atom": "latest"
   },
   "dependencies": {
-    "@-0/keys": "latest",
-    "@-0/utils": "latest"
+    "@-0/keys": "0.2.58",
+    "@-0/utils": "0.2.57"
   },
   "devDependencies": {
     "@thi.ng/arrays": "latest",
@@ -50,8 +50,8 @@
     "@thi.ng/paths": "latest",
     "@thi.ng/rstream": "latest",
     "@thi.ng/atom": "latest",
-    "@typescript-eslint/eslint-plugin": "^2.19.0",
-    "@typescript-eslint/parser": "^2.19.0",
+    "@typescript-eslint/eslint-plugin": "^2.19.2",
+    "@typescript-eslint/parser": "^2.19.2",
     "better-docs": "^1.4.7",
     "cross-env": "^7.0.0",
     "eslint": "^6.8.0",
