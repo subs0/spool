@@ -19,7 +19,8 @@
     "patch": "npm version patch && npm run docs && npm run pages && npm publish",
     "tests": "npm run types && npm run madge && jest",
     "postgit": "git push origin master && npm run patch",
-    "git": "git add . && git commit -m"
+    "ncu": "ncu -u && npm i",
+    "git": "npm run ncu && git add . && git commit -m"
   },
   "keywords": [
     "thi.ng",
@@ -39,8 +40,8 @@
     "@thi.ng/atom": "latest"
   },
   "dependencies": {
-    "@-0/keys": "0.2.58",
-    "@-0/utils": "0.2.57"
+    "@-0/keys": "^0.2.61",
+    "@-0/utils": "^0.2.57"
   },
   "devDependencies": {
     "@thi.ng/arrays": "latest",
