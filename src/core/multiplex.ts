@@ -8,7 +8,7 @@ import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK } from "@-0/
 
 import { stringify_type, xKeyError, key_index_err, diff_keys } from "@-0/utils"
 
-import { pubsub } from "@thi.ng/rstream"
+import { pubsub, Subscription, PubSub } from "@thi.ng/rstream"
 import { map } from "@thi.ng/transducers"
 
 /**
@@ -25,7 +25,7 @@ import { map } from "@thi.ng/transducers"
  *    (e.g., popstate / { sub$:  "cancel" })
  *
  */
-export const run$ = pubsub({
+export const run$: PubSub<any, any> = pubsub({
   topic: x => !!x[CMD_SUB$],
   id: "run$_stream",
   equiv: (x, y) => x === y || y === "_TRACE_STREAM"
@@ -36,7 +36,7 @@ export const run$ = pubsub({
  * Primary user-land _READ_ stream. For attaching handlers
  * for responding to emmitted Commands
  */
-export const out$ = pubsub({
+export const out$: PubSub<any, any> = pubsub({
   topic: x => x[CMD_SUB$],
   id: "out$_stream",
   equiv: (x, y) => x === y || y === "_TRACE_STREAM"
@@ -49,7 +49,7 @@ export const out$ = pubsub({
  * `topic` function used to alert downstream handlers is a
  * simple lookup of the `sub$` key of the command
  */
-export const command$ = run$.subscribeTopic(
+export const command$: Subscription<any, any> = run$.subscribeTopic(
   true,
   {
     next: x => out$.next(x),
@@ -266,7 +266,7 @@ export const multiplex = task_array =>
  * to `multiplex`er (the heart of `spule`)
  *
  */
-export const task$ = run$.subscribeTopic(
+export const task$: Subscription<any, any> = run$.subscribeTopic(
   false,
   {
     next: multiplex,
