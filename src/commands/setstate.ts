@@ -5,7 +5,6 @@ import { CMD_SUB$, CMD_ARGS, CMD_WORK, STATE_DATA, STATE_PATH } from "@-0/keys"
 import { set$$tate, $store$ } from "../store"
 
 import { registerCMD } from "../registers/registerCMD"
-import { command$ } from "../core"
 
 const command = {
   [CMD_SUB$]: "_SET_STATE",
@@ -19,7 +18,7 @@ const command = {
  */
 export const createSetStateCMD = store =>
   registerCMD({
-    ...command$,
+    ...command,
     [CMD_WORK]: args => set$$tate(args[STATE_PATH], args[STATE_DATA], store)
   })
 
