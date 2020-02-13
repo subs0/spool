@@ -29,6 +29,7 @@ import {
   STATE_DATA,
   STATE_PATH
 } from "@-0/keys"
+import { $store$ } from "../store"
 
 /**
  *
@@ -58,7 +59,7 @@ import {
  *
  * TODO: Type ROuter CFG
  */
-export const URL__ROUTE = (CFG: Function | Object, store: IAtom<any>) => {
+export const URL__ROUTE = (CFG: Function | Object, store: IAtom<any> = $store$): any => {
   let router, preroute, postroute, prefix
 
   if (isObject(CFG)) {
@@ -82,6 +83,7 @@ export const URL__ROUTE = (CFG: Function | Object, store: IAtom<any>) => {
     postroute = []
     prefix = null
   }
+  // @ts-ignore
   const _SET_STATE = registerCMDtoStore(store)(set$$tateHOC)
   const task = acc => [
     ...preroute, // 📌 TODO enable progress observation

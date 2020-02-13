@@ -24,7 +24,7 @@ import { $store$ } from "../store"
 
 import { xKeyError, stringify_w_functions, diff_keys } from "@-0/utils"
 
-export const supplement$CMD: any = (cmd: Object, to$: ISubscribable<any>) => {
+export const supplement$CMD: any = (cmd: Command, to$: ISubscribable<any>) => {
   const sup$: ISubscribable<any> = cmd[CMD_SRC$]
   const sub$ = cmd[CMD_SUB$]
   const args = cmd[CMD_ARGS]
@@ -64,7 +64,7 @@ const err_str = "command Registration `registerCMD`"
  *  4. `src$` (optional, enables stream to feed Command)
  *
  */
-export const registerCMDtoStore = (store: IAtom<any>) => (command: Command | Function = null) => {
+export const registerCMDtoStore = (store: IAtom<any>) => (command: Command = null) => {
   /**
    * enables inspection of the existing Command registrations
    * if using Chrome, there's an additional advantage of being
