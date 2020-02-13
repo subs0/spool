@@ -1,5 +1,5 @@
 /** @format */
-export { createSetStateCMD, SET_STATE } from "./commands"
+export { createSetStateCMD, SET_STATE, set$$tateHOC } from "./commands"
 
 export { run$, command$, out$, task$ } from "./core"
 

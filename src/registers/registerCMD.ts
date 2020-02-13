@@ -8,7 +8,16 @@ import { getIn } from "@thi.ng/paths"
 import { IAtom } from "@thi.ng/atom"
 import { ISubscribable, Subscription } from "@thi.ng/rstream"
 
-import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, $$_CMDS } from "@-0/keys"
+import {
+  CMD_SUB$,
+  CMD_ARGS,
+  CMD_RESO,
+  CMD_ERRO,
+  CMD_SRC$,
+  CMD_WORK,
+  $$_CMDS,
+  Command
+} from "@-0/keys"
 
 import { command$, out$ } from "../core"
 import { $store$ } from "../store"
@@ -55,7 +64,7 @@ const err_str = "command Registration `registerCMD`"
  *  4. `src$` (optional, enables stream to feed Command)
  *
  */
-export const registerCMDtoStore = (store: IAtom<any>) => (command: Object = null) => {
+export const registerCMDtoStore = (store: IAtom<any>) => (command: Command | Function = null) => {
   /**
    * enables inspection of the existing Command registrations
    * if using Chrome, there's an additional advantage of being

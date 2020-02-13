@@ -3,12 +3,16 @@
  */
 
 import { isObject } from "@thi.ng/checks"
+import { IAtom } from "@thi.ng/atom"
 
+import { parse } from "@-0/utils"
 import {
   // msTaskPromiseDelay,
-  SET_STATE
+  // SET_STATE,
+  set$$tateHOC
 } from "../commands"
 
+import { registerCMDtoStore } from "../registers"
 import {
   $$_PATH,
   URL_FULL,
@@ -25,8 +29,6 @@ import {
   STATE_DATA,
   STATE_PATH
 } from "@-0/keys"
-
-import { parse } from "@-0/utils"
 
 /**
  *
@@ -53,8 +55,10 @@ import { parse } from "@-0/utils"
  *  - `URL_path`
  *  - `URL`
  *  - `DOM`
+ *
+ * TODO: Type ROuter CFG
  */
-export const URL__ROUTE = CFG => {
+export const URL__ROUTE = (CFG: Function | Object, store: IAtom<any>) => {
   let router, preroute, postroute, prefix
 
   if (isObject(CFG)) {
@@ -78,8 +82,9 @@ export const URL__ROUTE = CFG => {
     postroute = []
     prefix = null
   }
-  return acc => [
-    ...preroute, // 📌 enable progress observation
+  const _SET_STATE = registerCMDtoStore(store)(set$$tateHOC)
+  const task = acc => [
+    ...preroute, // 📌 TODO enable progress observation
     /**
      * ## `_SET_ROUTER_LOADING_STATE`cod
      *
@@ -99,7 +104,7 @@ export const URL__ROUTE = CFG => {
     {
       [CMD_ARGS]: prefix ? router(acc[URL_FULL].replace(prefix, "")) : router(acc[URL_FULL]),
       [CMD_RESO]: (_acc, _res) => ({
-        // FIXME: no page in core...
+        // 🤔: no page in core... can it be migrated/refactored into DOM Router?
         [URL_PAGE]: _res[URL_PAGE],
         [URL_DATA]: _res[URL_DATA]
       }),
@@ -127,7 +132,7 @@ export const URL__ROUTE = CFG => {
      *
      */
     {
-      ...SET_STATE,
+      ..._SET_STATE,
       [CMD_ARGS]: _acc => ({
         [STATE_DATA]: _acc[URL_PATH],
         [STATE_PATH]: [$$_PATH]
@@ -135,4 +140,5 @@ export const URL__ROUTE = CFG => {
     },
     ...postroute
   ]
+  return [task, _SET_STATE]
 }
