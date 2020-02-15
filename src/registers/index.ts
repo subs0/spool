@@ -1,2 +1,2 @@
-export { registerCMD, registerCMDtoStore } from "./registerCMD"
+export { registerCMD } from "./registerCMD"
 export { router } from "./router"

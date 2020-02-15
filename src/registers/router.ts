@@ -31,7 +31,7 @@ import { run$ } from "../core"
 
 // TODO: server router must be fed from `http` or something (req/res), not `DOMnavigated$`
 
-export const registerRouter = router => {
+export const registerRouter: any = router => {
   console.log("Router Registered")
 
   const taskFrom = URL__ROUTE(router)

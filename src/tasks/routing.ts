@@ -8,11 +8,9 @@ import { IAtom } from "@thi.ng/atom"
 import { parse } from "@-0/utils"
 import {
   // msTaskPromiseDelay,
-  // set$$tateHOC,
   SET_STATE
 } from "../commands"
 
-import { registerCMDtoStore } from "../registers"
 import {
   $$_PATH,
   URL_FULL,

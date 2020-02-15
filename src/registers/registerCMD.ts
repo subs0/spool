@@ -8,17 +8,7 @@ import { getIn } from "@thi.ng/paths"
 import { IAtom } from "@thi.ng/atom"
 import { ISubscribable, Subscription } from "@thi.ng/rstream"
 
-import {
-  CMD_SUB$,
-  CMD_ARGS,
-  CMD_RESO,
-  CMD_ERRO,
-  CMD_SRC$,
-  CMD_WORK,
-  $$_CMDS,
-  Command,
-  CFG_STOR
-} from "@-0/keys"
+import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, Command } from "@-0/keys"
 
 import { command$, out$ } from "../core"
 import { $store$ } from "../store"
@@ -65,14 +55,7 @@ const err_str = "command Registration `registerCMD`"
  *  4. `src$` (optional, enables stream to feed Command)
  *
  */
-export const registerCMDtoStore = (store: IAtom<any>) => (command: Command = null) => {
-  /**
-   * enables inspection of the existing Command registrations
-   * if using Chrome, there's an additional advantage of being
-   * able to find the `[[FunctionLocation]]` of the Command
-   */
-  if (!command) return getIn(store.deref(), $$_CMDS)
-
+export const registerCMD = (command: Command = null) => {
   const sub$ = command[CMD_SUB$]
   const args = command[CMD_ARGS]
   const erro = command[CMD_ERRO]
@@ -105,24 +88,6 @@ export const registerCMDtoStore = (store: IAtom<any>) => (command: Command = nul
         [CMD_ERRO]: erro
       }
     : { [CMD_SUB$]: sub$, [CMD_ARGS]: args }
-  if (getIn(store.deref(), [$$_CMDS, sub$])) {
-    throw new Error(
-      `
 
-    🔥 duplicate \`sub$\` value detected in Command:
-    ${stringify_w_functions(CMD)}
-    existing registered Commands:
-    ${JSON.stringify(getIn(store.deref(), $$_CMDS), null, 2)}
-    🔥 Please use a different/unique Command \`sub$\` string
-
-    🔎 Inspect existing Commands using empty call: \`registerCMD()\`
-
-      `
-    )
-  }
-  //@ts-ignore
-  store.resetIn([$$_CMDS, sub$], CMD)
   return CMD
 }
-
-export const registerCMD = registerCMDtoStore($store$)
