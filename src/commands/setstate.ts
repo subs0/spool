@@ -1,12 +1,12 @@
 /**
  * @module commands/state
  */
-import { CMD_SUB$, CMD_ARGS, CMD_WORK, STATE_DATA, STATE_PATH } from "@-0/keys"
+import { CMD_SUB$, CMD_ARGS, CMD_WORK, STATE_DATA, STATE_PATH, CFG_STOR } from "@-0/keys"
 import { set$$tate, $store$ } from "../store"
 
 import { registerCMD } from "../registers/registerCMD"
 
-const command = {
+const set_state = {
   [CMD_SUB$]: "_SET_STATE",
   [CMD_ARGS]: x => x
 }
@@ -18,13 +18,18 @@ const command = {
  */
 export const createSetStateCMD = store =>
   registerCMD({
-    ...command,
+    ...set_state,
     [CMD_WORK]: args => set$$tate(args[STATE_PATH], args[STATE_DATA], store)
   })
 
 export const SET_STATE = createSetStateCMD($store$)
 
 export const set$$tateHOC = store => ({
-  ...command,
+  ...set_state,
   [CMD_WORK]: args => set$$tate(args[STATE_PATH], args[STATE_DATA], store)
+})
+
+export const CMD_SET_STATE = config => ({
+  ...set_state,
+  [CMD_WORK]: args => set$$tate(args[STATE_PATH], args[STATE_DATA], config[CFG_STOR])
 })

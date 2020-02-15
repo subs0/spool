@@ -8,8 +8,8 @@ import { IAtom } from "@thi.ng/atom"
 import { parse } from "@-0/utils"
 import {
   // msTaskPromiseDelay,
-  // SET_STATE,
-  set$$tateHOC
+  // set$$tateHOC,
+  SET_STATE
 } from "../commands"
 
 import { registerCMDtoStore } from "../registers"
@@ -59,7 +59,7 @@ import { $store$ } from "../store"
  *
  * TODO: Type ROuter CFG
  */
-export const URL__ROUTE = (CFG: Function | Object, store: IAtom<any> = $store$): any => {
+export const URL__ROUTE = (CFG: Function | Object): any => {
   let router, preroute, postroute, prefix
 
   if (isObject(CFG)) {
@@ -83,8 +83,6 @@ export const URL__ROUTE = (CFG: Function | Object, store: IAtom<any> = $store$):
     postroute = []
     prefix = null
   }
-  // @ts-ignore
-  const _SET_STATE = registerCMDtoStore(store)(set$$tateHOC)
   const task = acc => [
     ...preroute, // 📌 TODO enable progress observation
     /**
@@ -134,7 +132,7 @@ export const URL__ROUTE = (CFG: Function | Object, store: IAtom<any> = $store$):
      *
      */
     {
-      ..._SET_STATE,
+      ...SET_STATE,
       [CMD_ARGS]: _acc => ({
         [STATE_DATA]: _acc[URL_PATH],
         [STATE_PATH]: [$$_PATH]
@@ -142,5 +140,5 @@ export const URL__ROUTE = (CFG: Function | Object, store: IAtom<any> = $store$):
     },
     ...postroute
   ]
-  return [task, _SET_STATE]
+  return task
 }

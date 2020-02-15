@@ -16,7 +16,8 @@ import {
   CMD_SRC$,
   CMD_WORK,
   $$_CMDS,
-  Command
+  Command,
+  CFG_STOR
 } from "@-0/keys"
 
 import { command$, out$ } from "../core"
@@ -71,13 +72,7 @@ export const registerCMDtoStore = (store: IAtom<any>) => (command: Command = nul
    * able to find the `[[FunctionLocation]]` of the Command
    */
   if (!command) return getIn(store.deref(), $$_CMDS)
-  /**
-   * if a command needs access to the global store, it
-   * should be provided as a function that takes a store and
-   * returns a Command
-   */
 
-  if (isFunction(command)) command = command(store)
   const sub$ = command[CMD_SUB$]
   const args = command[CMD_ARGS]
   const erro = command[CMD_ERRO]
@@ -126,7 +121,7 @@ export const registerCMDtoStore = (store: IAtom<any>) => (command: Command = nul
     )
   }
   //@ts-ignore
-  store.swapIn($$_CMDS, x => ({ ...x, [sub$.toString()]: CMD }))
+  store.resetIn([$$_CMDS, sub$], CMD)
   return CMD
 }
 
