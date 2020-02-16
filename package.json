@@ -40,8 +40,8 @@
     "@thi.ng/atom": "latest"
   },
   "dependencies": {
-    "@-0/keys": "^0.2.63",
-    "@-0/utils": "^0.2.57"
+    "@-0/keys": "^0.2.64",
+    "@-0/utils": "^0.2.58"
   },
   "devDependencies": {
     "@thi.ng/arrays": "latest",
