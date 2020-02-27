@@ -31,26 +31,26 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@thi.ng/arrays": "latest",
-    "@thi.ng/associative": "latest",
-    "@thi.ng/transducers": "latest",
-    "@thi.ng/checks": "latest",
-    "@thi.ng/paths": "latest",
-    "@thi.ng/rstream": "latest",
-    "@thi.ng/atom": "latest"
+    "@thi.ng/arrays": "^0.5.1",
+    "@thi.ng/associative": "3.1.6",
+    "@thi.ng/atom": "^3.1.4",
+    "@thi.ng/checks": "^2.5.0",
+    "@thi.ng/paths": "^3.0.1",
+    "@thi.ng/transducers": "^6.2.1",
+    "@thi.ng/rstream": "^3.0.2"
   },
   "dependencies": {
     "@-0/keys": "^0.2.64",
     "@-0/utils": "^0.2.58"
   },
   "devDependencies": {
-    "@thi.ng/arrays": "latest",
-    "@thi.ng/associative": "latest",
-    "@thi.ng/transducers": "latest",
-    "@thi.ng/checks": "latest",
-    "@thi.ng/paths": "latest",
-    "@thi.ng/rstream": "latest",
-    "@thi.ng/atom": "latest",
+    "@thi.ng/arrays": "^0.5.1",
+    "@thi.ng/associative": "3.1.6",
+    "@thi.ng/atom": "^3.1.4",
+    "@thi.ng/checks": "^2.5.0",
+    "@thi.ng/paths": "^3.0.1",
+    "@thi.ng/transducers": "^6.2.1",
+    "@thi.ng/rstream": "^3.0.2",
     "@typescript-eslint/eslint-plugin": "^2.19.2",
     "@typescript-eslint/parser": "^2.19.2",
     "better-docs": "^1.4.7",
