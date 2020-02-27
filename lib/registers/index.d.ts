@@ -1,0 +1,1 @@
+export { registerCMD } from "./registerCMD";
