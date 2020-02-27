@@ -3,13 +3,10 @@
  */
 
 import { isFunction, isPromise } from "@thi.ng/checks"
+import { pubsub, Subscription, PubSub } from "@thi.ng/rstream"
 
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK } from "@-0/keys"
-
 import { stringify_type, xKeyError, key_index_err, diff_keys } from "@-0/utils"
-
-import { pubsub, Subscription, PubSub } from "@thi.ng/rstream"
-import { map } from "@thi.ng/transducers"
 
 /**
  * User-land event dispatch stream

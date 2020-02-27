@@ -4,16 +4,12 @@
 
 import { map } from "@thi.ng/transducers"
 import { isFunction } from "@thi.ng/checks"
-import { getIn } from "@thi.ng/paths"
-import { IAtom } from "@thi.ng/atom"
-import { ISubscribable, Subscription } from "@thi.ng/rstream"
+import { ISubscribable } from "@thi.ng/rstream"
 
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, Command } from "@-0/keys"
+import { xKeyError, diff_keys } from "@-0/utils"
 
 import { command$, out$ } from "../core"
-import { $store$ } from "../store"
-
-import { xKeyError, stringify_w_functions, diff_keys } from "@-0/utils"
 
 export const supplement$CMD: any = (cmd: Command, to$: ISubscribable<any>) => {
   const sup$: ISubscribable<any> = cmd[CMD_SRC$]
