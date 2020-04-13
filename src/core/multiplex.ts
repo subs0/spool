@@ -23,9 +23,9 @@ import { stringify_type, xKeyError, key_index_err, diff_keys } from "@-0/utils"
  *
  */
 export const run$: PubSub<any, any> = pubsub({
-  topic: x => !!x[CMD_SUB$],
+  topic: (x) => !!x[CMD_SUB$],
   id: "run$_stream",
-  equiv: (x, y) => x === y || y === "_TRACE_STREAM"
+  equiv: (x, y) => x === y || y === "_TRACE_STREAM",
 })
 
 /**
@@ -34,9 +34,9 @@ export const run$: PubSub<any, any> = pubsub({
  * for responding to emmitted Commands
  */
 export const out$: PubSub<any, any> = pubsub({
-  topic: x => x[CMD_SUB$],
+  topic: (x) => x[CMD_SUB$],
   id: "out$_stream",
-  equiv: (x, y) => x === y || y === "_TRACE_STREAM"
+  equiv: (x, y) => x === y || y === "_TRACE_STREAM",
 })
 
 /**
@@ -49,10 +49,25 @@ export const out$: PubSub<any, any> = pubsub({
 export const command$: Subscription<any, any> = run$.subscribeTopic(
   true,
   {
-    next: x => out$.next(x),
-    error: console.warn
+    next: (x) => out$.next(x),
+    error: console.warn,
   },
   { id: "command$_stream" }
+)
+
+/**
+ *
+ * Task stream that handles Arrays of Commands. Dispatches
+ * to `multiplex`er (the heart of `spule`)
+ *
+ */
+export const task$: Subscription<any, any> = run$.subscribeTopic(
+  false,
+  {
+    next: multiplex,
+    error: console.warn,
+  },
+  { id: "task$_stream" }
 )
 
 const err_str = "Spooling Interupted" // <- add doc link to error strings
@@ -144,8 +159,8 @@ const nosub$_err = (c, i) =>
  * ```
  *
  **/
-export const multiplex = task_array =>
-  task_array.reduce(async (a, c, i) => {
+export function multiplex(task_array) {
+  return task_array.reduce(async (a, c, i) => {
     const acc = await a
     // console.log("ACCUMULATOR =>", acc)
     if (isFunction(c)) {
@@ -189,7 +204,7 @@ export const multiplex = task_array =>
     }
     if (arg_type === "PROMISE") {
       // result = await discardable(args).catch(e => e)
-      result = await args.catch(e => e)
+      result = await args.catch((e) => e)
     }
     if (arg_type === "THUNK") {
       // if thunk, dispatch to ad-hoc stream, return acc
@@ -202,7 +217,7 @@ export const multiplex = task_array =>
     // if function, call it with acc and resolve any Promises
     if (arg_type === "FUNCTION") {
       let temp = args(acc)
-      result = isPromise(temp) ? await temp.catch(e => e) : temp
+      result = isPromise(temp) ? await temp.catch((e) => e) : temp
     }
     // if object, send the Command as-is and spread into acc
     if (arg_type === "OBJECT") {
@@ -256,18 +271,4 @@ export const multiplex = task_array =>
     command$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
     return { ...acc, ...result }
   }, Promise.resolve({}))
-
-/**
- *
- * Task stream that handles Arrays of Commands. Dispatches
- * to `multiplex`er (the heart of `spule`)
- *
- */
-export const task$: Subscription<any, any> = run$.subscribeTopic(
-  false,
-  {
-    next: multiplex,
-    error: console.warn
-  },
-  { id: "task$_stream" }
-)
+}

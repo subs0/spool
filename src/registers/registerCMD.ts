@@ -11,14 +11,30 @@ import { xKeyError, diff_keys } from "@-0/utils"
 
 import { command$, out$ } from "../core"
 
-export const supplement$CMD: any = (cmd: Command, to$: ISubscribable<any>) => {
-  const sup$: ISubscribable<any> = cmd[CMD_SRC$]
+/**
+ *
+ * if a command has a `src$` key it is connected to an
+ * upstream producer stream, which enables that source to
+ * push values into the command stream and trigger the work
+ * registered.
+ */
+export const supplement$CMD: any = (cmd: Command, downstream: ISubscribable<any>) => {
+  const upstream: ISubscribable<any> = cmd[CMD_SRC$]
   const sub$ = cmd[CMD_SUB$]
   const args = cmd[CMD_ARGS]
   const isFn = isFunction(args)
+  /**
+   * if the args are a function, construct payload from
+   * args, else use static args
+   */
   const load = (x = null) => ({ [CMD_SUB$]: sub$, [CMD_ARGS]: x ? args(x) : args })
-  const xport = $ => map(x => $.next(isFn ? load(x) : load()))
-  return sup$.subscribe(xport(to$))
+  /**
+   * for each emission from upstream source, export it
+   * downstream via
+   * upstream.subscribe(xf.map(x => downstream.next(x)))
+   */
+  const xport = (downstream) => map((x) => downstream.next(isFn ? load(x) : load()))
+  return upstream.subscribe(xport(downstream))
 }
 
 const err_str = "command Registration `registerCMD`"
@@ -73,7 +89,7 @@ export const registerCMD = (command: Command = null) => {
   out$.subscribeTopic(
     sub$,
     { next: work, error: console.warn },
-    map(puck => puck[CMD_ARGS])
+    map((puck) => puck[CMD_ARGS])
   )
 
   const CMD = reso
@@ -81,7 +97,7 @@ export const registerCMD = (command: Command = null) => {
         [CMD_SUB$]: sub$,
         [CMD_ARGS]: args,
         [CMD_RESO]: reso,
-        [CMD_ERRO]: erro
+        [CMD_ERRO]: erro,
       }
     : { [CMD_SUB$]: sub$, [CMD_ARGS]: args }
 
