@@ -232,7 +232,7 @@ export function multiplex(task_array) {
       // promise rejection handler
       if (erro && result instanceof Error) {
         let error = erro(acc, result)
-        if (error && error[CMD_SUB$]) return command$.next(error)
+        if (getIn(error, [CMD_SUB$])) return command$.next(error)
         console.warn(err_str, "Promise rejected:", result)
         return acc
       }
@@ -241,7 +241,7 @@ export function multiplex(task_array) {
         let resolved = reso(acc, result)
         // resolved promise with no sub$ key -> spread
         // resolved value into acc
-        if (resolved[CMD_SUB$]) command$.next(resolved)
+        if (getIn(resolved, [CMD_SUB$])) command$.next(resolved)
         else if (!sub$) return { ...acc, ...resolved }
         result = resolved
       }
