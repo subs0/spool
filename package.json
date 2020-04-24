@@ -19,7 +19,7 @@
     "docs": "npm run types && npm run jsdoc",
     "patch": "npm version patch && npm run docs && npm run pages && npm publish",
     "postgit": "git push origin master && npm run patch",
-    "ncu": "ncu -u && npm i",
+    "ncu": "ncu -u && npm i && npm audit fix",
     "git": "npm run ncu && git add . && git commit -m"
   },
   "keywords": [
