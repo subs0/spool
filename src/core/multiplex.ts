@@ -7,7 +7,7 @@ import { pubsub, Subscription, PubSub } from "@thi.ng/rstream"
 
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK } from "@-0/keys"
 import { stringify_type, xKeyError, key_index_err, diff_keys } from "@-0/utils"
-
+import { getIn } from "@thi.ng/paths"
 /**
  * User-land event dispatch stream
  *
@@ -232,7 +232,7 @@ export function multiplex(task_array) {
       // promise rejection handler
       if (erro && result instanceof Error) {
         let error = erro(acc, result)
-        if (error[CMD_SUB$]) return command$.next(error)
+        if (error && error[CMD_SUB$]) return command$.next(error)
         console.warn(err_str, "Promise rejected:", result)
         return acc
       }
