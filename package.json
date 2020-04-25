@@ -40,8 +40,8 @@
     "@thi.ng/rstream": "^4.0.5"
   },
   "dependencies": {
-    "@-0/keys": "^0.2.70",
-    "@-0/utils": "^0.2.64"
+    "@-0/keys": "^0.2.71",
+    "@-0/utils": "^0.2.65"
   },
   "devDependencies": {
     "@thi.ng/arrays": "^0.6.3",
