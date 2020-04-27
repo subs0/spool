@@ -93,10 +93,10 @@ const nosub$_err = (c, i) =>
  * ### Subtasks:
  *
  * Subtasks are the way you compose tasks. Insert a Task and
- * the spool will unpack it in place (super -> sub
- * order preserved) A Subtask must be defined as a unary
- * function that accepts an accumulator object and returns a
- * Task, e.g.:
+ * the spool will unpack it in place (super -> sub order
+ * preserved) A Subtask must be defined as a unary function
+ * that accepts an accumulator object and returns a Task,
+ * e.g.:
  *
  * #### PSEUDO
  * ```js
@@ -158,7 +158,40 @@ const nosub$_err = (c, i) =>
  * ]
  * ```
  *
- **/
+ * 🔥 IMPORTANT 🔥
+ *
+ * the accumulation object that's passed between Commands
+ * within a task is spread together between Commands. I.e.,
+ * later Commands payloads are spread into the accumulator -
+ * potentially overwriting earlier Commands playoads, but -
+ * if no later payloads keys overlap with keys from earlier
+ * payloads those key/value pairs remain intact.
+ *
+ * ### Example that doesn't work
+ * ```js
+ * export const pruneKVPairs = (obj, ...keys) => {
+ *   let out = {}
+ *   Object.entries(obj).forEach(([k, v]) => {
+ *     if (keys.some(x => x === k)) return
+ *     else return (out[k] = v)
+ *   })
+ *   return out
+ * }
+ * const PRUNE_PROPS_CMD = registerCMD({
+ *  sub$: "PRUNE_PROPS_CMD",
+ *  args: acc => pruneKVPairs(acc, "remove_me", "omit_key")
+ * })
+ * ```
+ * This Command doesn't actually prune the accumulator. It
+ * does prune upon receipt, but that pruned result is
+ * thereafter spread back together with the prior result,
+ * effectively undoing the prune
+ *
+ * In order to "prune" entries from the accumulator, you
+ * must do so at the receiving end of the Task. E.g., by
+ * applying it to the output
+ *
+ */
 export function multiplex(task_array) {
   return task_array.reduce(async (a, c, i) => {
     const acc = await a

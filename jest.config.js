@@ -4,6 +4,8 @@ module.exports = {
   verbose: true,
   transform: {
     "^.+\\.js$": "babel-jest",
+    "^.+\\.(ts|tsx)$": "ts-jest",
   },
   transformIgnorePatterns: ["node_modules/?!(@-0)"],
+  watchPathIgnorePatterns: ["^.+\\.repl.(ts|js)$"],
 }
