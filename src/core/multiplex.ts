@@ -263,11 +263,14 @@ export function multiplex(task_array) {
     // TODO: 🤔 think harder about the reso/erro handling
     if (reso) {
       // promise rejection handler
-      if (erro && result instanceof Error) {
-        let error = erro(acc, result)
-        if (getIn(error, [CMD_SUB$])) return command$.next(error)
-        console.warn(err_str, "Promise rejected:", result)
-        return acc
+      if (result instanceof Error) {
+        if (erro) {
+          let error = erro(acc, result)
+          if (getIn(error, [CMD_SUB$])) return command$.next(error)
+          console.warn(err_str, "Promise rejected:", result)
+          return acc
+        }
+        console.warn(`no 'erro' (Error handler) set for error in ${result}`)
       }
       // resovled promise handler
       if (!(result instanceof Error)) {
@@ -278,7 +281,6 @@ export function multiplex(task_array) {
         else if (!sub$) return { ...acc, ...resolved }
         result = resolved
       }
-      console.warn(`no 'erro' (Error handler) set for ${c}`)
     }
     // no sub$ key & not a promise -> just spread into acc
     if (!reso && !sub$) return { ...acc, ...result }
