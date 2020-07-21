@@ -1,0 +1,425 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> core/multiplex.ts</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-commands_register.html">commands/register</a></li><li><a href="module-core.html">core</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>core/multiplex.ts</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @module core
+ */
+
+import { isFunction, isPromise } from "@thi.ng/checks"
+import { pubsub, Subscription, PubSub } from "@thi.ng/rstream"
+
+import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK } from "@-0/keys"
+import { stringify_type, xKeyError, key_index_err, diff_keys } from "@-0/utils"
+import { getIn } from "@thi.ng/paths"
+/**
+ * User-land event dispatch stream
+ *
+ * This stream is directly exposed to users. Any one-off
+ * Commands `next`ed into this stream are sent to the
+ * `command$` stream. Arrays of Commands (Tasks) are sent to
+ * the `task$` stream.
+ *
+ * TODO: add examples,`beforeunload` event handler within #4
+ *    (orphan): SEE https://youtu.be/QQukWZcIptM and enable
+ *    ctx.run.cancel() via external or internal events
+ *    (e.g., popstate / { sub$:  "cancel" })
+ *
+ */
+export const run$: PubSub&lt;any, any> = pubsub({
+  topic: (x) => !!x[CMD_SUB$],
+  id: "run$_stream",
+  equiv: (x, y) => x === y || y === "_TRACE_STREAM",
+})
+
+/**
+ *
+ * Primary user-land _READ_ stream. For attaching handlers
+ * for responding to emmitted Commands
+ */
+export const out$: PubSub&lt;any, any> = pubsub({
+  topic: (x) => x[CMD_SUB$],
+  id: "out$_stream",
+  equiv: (x, y) => x === y || y === "_TRACE_STREAM",
+})
+
+/**
+ *
+ * Primary fork/bisect stream for indivual commands.
+ * attached to a `pubsub` stemming from this stream. The
+ * `topic` function used to alert downstream handlers is a
+ * simple lookup of the `sub$` key of the command
+ */
+export const command$: Subscription&lt;any, any> = run$.subscribeTopic(
+  true,
+  {
+    next: (x) => out$.next(x),
+    error: console.warn,
+  },
+  { id: "command$_stream" }
+)
+
+/**
+ *
+ * Task stream that handles Arrays of Commands. Dispatches
+ * to `multiplex`er (the heart of `spule`)
+ *
+ */
+export const task$: Subscription&lt;any, any> = run$.subscribeTopic(
+  false,
+  {
+    next: multiplex,
+    error: console.warn,
+  },
+  { id: "task$_stream" }
+)
+
+const err_str = "Spooling Interupted" // &lt;- add doc link to error strings
+
+const nosub$_err = (c, i) =>
+  console.warn(`
+  🔥 No sub$ included for a Command with a primitive for 'args'. 
+  🔥 Ergo, nothing was done with this Command: 
+  
+  ${JSON.stringify(c)}
+  
+  ${key_index_err(c, i)}
+  
+  Hope that helps!
+  `)
+
+/**
+ *
+ * Handles Collections (array) of Commands ("Tasks") which
+ * require _ordered_ choreography and/or have a dependency
+ * on some (a)sync data produced by a user interaction.
+ *
+ * ### Subtasks:
+ *
+ * Subtasks are the way you compose tasks. Insert a Task and
+ * the spool will unpack it in place (super -> sub order
+ * preserved) A Subtask must be defined as a unary function
+ * that accepts an accumulator object and returns a Task,
+ * e.g.:
+ *
+ * #### PSEUDO
+ * ```js
+ * // { C: Command }
+ * // ( { A: Accumulator }: Object ) => [{C},{C}]: Subtask
+ * let someSubtask = ({A}) => [{C}, {C}, ({A})=>[{C},{C}], ...]
+ * ```
+ *
+ * #### Example
+ * ```js
+ * // subtask example:
+ * let subtask1 = acc => [
+ *  { sub$: "acc"
+ *  , args: { data: acc.data } },
+ *  { sub$: "route"
+ *  , args: { route: { href: acc.href } } }
+ * ]
+ *
+ * // task
+ * let task = [
+ *  { args: { href: "https://my.io/todos" } }, // acc init
+ *  { sub$: "fetch"
+ *  , args: ({ href }) => fetch(href).then(r => r.json())
+ *  , erro: (acc, err) => ({ sub$: "cancel", args: err })
+ *  , reso: (acc, res) => ({ data: res }) },
+ *  acc => subtask1(acc), // subtask reference
+ *  { sub$: "FLIP" , args: "done" }
+ * ]
+ * ```
+ * ### Ad-hoc stream injection Example
+ *
+ * ```js
+ * import { stream } from "@thi.ng/rstream"
+ * import { map, comp } from "@thi.ng/transducers"
+ *
+ * // ad-hoc stream
+ * let login = stream().subscribe(comp(
+ *  map(x => console.log("login ->", x)),
+ *  map(({ token }) => loginToMyAuth(token))
+ * ))
+ *
+ * // subtask
+ * let subtask_login = ({ token }) => [
+ *  { sub$: login // &lt;- stream
+ *  , args: () => ({ token }) } // &lt;- use acc
+ * ]
+ *
+ * // task
+ * let task = [
+ *  // no sub$, just pass data
+ *  { args: { href: "https://my.io/auth" } },
+ *  { sub$: login , args: () => "logging in..." },
+ *  { sub$: "AUTH"
+ *  , args: ({ href }) => fetch(href).then(r => r.json())
+ *  , erro: (acc, err) => ({ sub$: "cancel", args: err })
+ *  , reso: (acc, res) => ({ token: res }) },
+ *  acc => subtask_login(acc),
+ *  { sub$: login , args: () => "log in success" }
+ * ]
+ * ```
+ *
+ * 🔥 IMPORTANT 🔥
+ *
+ * the accumulation object that's passed between Commands
+ * within a task is spread together between Commands. I.e.,
+ * later Commands payloads are spread into the accumulator -
+ * potentially overwriting earlier Commands playoads, but -
+ * if no later payloads keys overlap with keys from earlier
+ * payloads those key/value pairs remain intact.
+ *
+ * ### Example that doesn't work
+ * ```js
+ * export const pruneKVPairs = (obj, ...keys) => {
+ *   let out = {}
+ *   Object.entries(obj).forEach(([k, v]) => {
+ *     if (keys.some(x => x === k)) return
+ *     else return (out[k] = v)
+ *   })
+ *   return out
+ * }
+ * const PRUNE_PROPS_CMD = registerCMD({
+ *  sub$: "PRUNE_PROPS_CMD",
+ *  args: acc => pruneKVPairs(acc, "remove_me", "omit_key")
+ * })
+ * ```
+ * This Command doesn't actually prune the accumulator. It
+ * does prune upon receipt, but that pruned result is
+ * thereafter spread back together with the prior result,
+ * effectively undoing the prune
+ *
+ * In order to "prune" entries from the accumulator, you
+ * must do so at the receiving end of the Task. E.g., by
+ * applying it to the output
+ *
+ */
+export function multiplex(task_array) {
+  return task_array.reduce(async (a, c, i) => {
+    const acc = await a
+    // console.log("ACCUMULATOR =>", acc)
+    if (isFunction(c)) {
+      try {
+        const recur = c(acc)
+        // ensures accumulator is preserved between stacks
+        recur.unshift({ [CMD_ARGS]: acc })
+        return multiplex(recur)
+      } catch (e) {
+        console.warn(err_str, e)
+        return
+      }
+    }
+    const sub$ = c[CMD_SUB$]
+    const args = c[CMD_ARGS]
+    const erro = c[CMD_ERRO]
+    const reso = c[CMD_RESO]
+    // const _source$ = c[source$]
+    // const _handler = c[handler]
+    const knowns = [CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK]
+    const [unknowns] = diff_keys(knowns, c)
+
+    if (unknowns.length > 0) throw new Error(xKeyError(err_str, c, unknowns, sub$, i))
+    const arg_type = stringify_type(args)
+
+    let result = args
+
+    /* RESOLVING ARGS */
+    if (arg_type !== "PROMISE" &amp;&amp; reso) {
+      /**
+       * If some signature needs to deal with both Promises
+       * and non-Promises, non-Promises are wrapped in a
+       * Promise to "lift" them into the proper context for
+       * handling
+       */
+      result = Promise.resolve(args)
+    }
+    if (args !== Object(args) &amp;&amp; !sub$) {
+      nosub$_err(c, i)
+      return acc
+    }
+    if (arg_type === "PROMISE") {
+      // result = await discardable(args).catch(e => e)
+      result = await args.catch((e) => e)
+    }
+    if (arg_type === "THUNK") {
+      // if thunk, dispatch to ad-hoc stream, return acc
+      // as-is ⚠ this command will not be waited on
+      result = args()
+      console.log(`dispatching to ad-hoc stream: ${sub$.id}`)
+      sub$.next(result)
+      return acc
+    }
+    // if function, call it with acc and resolve any Promises
+    if (arg_type === "FUNCTION") {
+      let temp = args(acc)
+      result = isPromise(temp) ? await temp.catch((e) => e) : temp
+    }
+    // if object, send the Command as-is and spread into acc
+    if (arg_type === "OBJECT") {
+      if (!sub$) return { ...acc, ...args }
+      command$.next(c)
+      return { ...acc, ...args }
+    }
+
+    /* RESULT HANDLERS */
+    // TODO: 🤔 think harder about the reso/erro handling
+    if (reso) {
+      // promise rejection handler
+      if (result instanceof Error) {
+        if (erro) {
+          let error = erro(acc, result)
+          if (getIn(error, [CMD_SUB$])) return command$.next(error)
+          console.warn(err_str, "Promise rejected:", result)
+          return acc
+        }
+        console.warn(`no 'erro' (Error handler) set for error in ${result}`)
+      }
+      // resovled promise handler
+      if (!(result instanceof Error)) {
+        let resolved = reso(acc, result)
+        // resolved promise with no sub$ key -> spread
+        // resolved value into acc
+        if (getIn(resolved, [CMD_SUB$])) command$.next(resolved)
+        else if (!sub$) return { ...acc, ...resolved }
+        result = resolved
+      }
+    }
+    // no sub$ key &amp; not a promise -> just spread into acc
+    if (!reso &amp;&amp; !sub$) return { ...acc, ...result }
+
+    // error, but no error handler
+    if (result instanceof Error) {
+      console.warn(err_str, result)
+      return acc
+    }
+    if (result !== Object(result)) {
+      if (!sub$) {
+        nosub$_err(c, i)
+        return acc
+      }
+      // if the final result is primitive, you can't refer
+      // to this value in proceeding Commands -> send the
+      // Command as-is, return acc as-is.
+      command$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
+      return acc
+    }
+    // if the result has made it this far, send it along
+    // console.log(`${sub$} made it through`)
+    command$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
+    return { ...acc, ...result }
+  }, Promise.resolve({}))
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+</body>
+</html>
