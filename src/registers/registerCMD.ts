@@ -19,22 +19,22 @@ import { command$, out$ } from "../core"
  * registered.
  */
 export const supplement$CMD: any = (cmd: Command, downstream: ISubscribable<any>) => {
-  const upstream: ISubscribable<any> = cmd[CMD_SRC$]
-  const sub$ = cmd[CMD_SUB$]
-  const args = cmd[CMD_ARGS]
-  const isFn = isFunction(args)
-  /**
-   * if the args are a function, construct payload from
-   * args, else use static args
-   */
-  const load = (x = null) => ({ [CMD_SUB$]: sub$, [CMD_ARGS]: x ? args(x) : args })
-  /**
-   * for each emission from upstream source, export it
-   * downstream via
-   * upstream.subscribe(xf.map(x => downstream.next(x)))
-   */
-  const xport = (downstream) => map((x) => downstream.next(isFn ? load(x) : load()))
-  return upstream.subscribe(xport(downstream))
+    const upstream: ISubscribable<any> = cmd[CMD_SRC$]
+    const sub$ = cmd[CMD_SUB$]
+    const args = cmd[CMD_ARGS]
+    const isFn = isFunction(args)
+    /**
+     * if the args are a function, construct payload from
+     * args, else use static args
+     */
+    const load = (x = null) => ({ [CMD_SUB$]: sub$, [CMD_ARGS]: x ? args(x) : args })
+    /**
+     * for each emission from upstream source, export it
+     * downstream via
+     * upstream.subscribe(xf.map(x => downstream.next(x)))
+     */
+    const xport = (downstream) => map((x) => downstream.next(isFn ? load(x) : load()))
+    return upstream.subscribe(xport(downstream))
 }
 
 const err_str = "command Registration `registerCMD`"
@@ -68,38 +68,38 @@ const err_str = "command Registration `registerCMD`"
  *
  */
 export const registerCMD = (command: Command = null) => {
-  const sub$ = command[CMD_SUB$]
-  const args = command[CMD_ARGS]
-  const erro = command[CMD_ERRO]
-  const reso = command[CMD_RESO]
-  const src$ = command[CMD_SRC$]
-  const work = command[CMD_WORK]
+    const sub$ = command[CMD_SUB$]
+    const args = command[CMD_ARGS]
+    const erro = command[CMD_ERRO]
+    const reso = command[CMD_RESO]
+    const src$ = command[CMD_SRC$]
+    const work = command[CMD_WORK]
 
-  const knowns = [CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK]
-  const [unknowns] = diff_keys(knowns, command)
-  // console.log({ knowns, unknowns })
+    const knowns = [CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK]
+    const [unknowns] = diff_keys(knowns, command)
+    // console.log({ knowns, unknowns })
 
-  if (unknowns.length > 0) {
-    throw new Error(xKeyError(err_str, command, unknowns, sub$, undefined))
-  }
+    if (unknowns.length > 0) {
+        throw new Error(xKeyError(err_str, command, unknowns, sub$, undefined))
+    }
 
-  if (src$) supplement$CMD(command, command$)
+    if (src$) supplement$CMD(command, out$)
 
-  // @ts-ignore
-  out$.subscribeTopic(
-    sub$,
-    { next: work, error: console.warn },
-    map((puck) => puck[CMD_ARGS])
-  )
+    // @ts-ignore
+    out$.subscribeTopic(
+        sub$,
+        { next: work, error: console.warn },
+        map((puck) => puck[CMD_ARGS])
+    )
 
-  const CMD = reso
-    ? {
-        [CMD_SUB$]: sub$,
-        [CMD_ARGS]: args,
-        [CMD_RESO]: reso,
-        [CMD_ERRO]: erro,
-      }
-    : { [CMD_SUB$]: sub$, [CMD_ARGS]: args }
+    const CMD = reso
+        ? {
+            [CMD_SUB$]: sub$,
+            [CMD_ARGS]: args,
+            [CMD_RESO]: reso,
+            [CMD_ERRO]: erro,
+        }
+        : { [CMD_SUB$]: sub$, [CMD_ARGS]: args }
 
-  return CMD
+    return CMD
 }
