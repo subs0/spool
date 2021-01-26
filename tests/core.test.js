@@ -1,17 +1,7 @@
 import { pubsub } from "@thi.ng/rstream"
 
-import {
-  DOMContentLoaded$,
-  DOMnavigated$,
-  command$,
-  popstate$,
-  multiplex,
-  registerRouterDOM,
-  out$,
-  run$,
-  boot,
-} from "../lib/core"
-import { registerCMD } from "../lib/commands"
+import { run$ } from "../lib/core"
+import { registerCMD } from "../lib/registers"
 
 export const test$ = pubsub({
   topic: (x) => x.cmd,
