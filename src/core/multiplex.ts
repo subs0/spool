@@ -29,7 +29,6 @@ export const run$: PubSub<any, any> = pubsub({
 })
 
 /**
- *
  * Primary user-land _READ_ stream. For attaching handlers
  * for responding to emmitted Commands
  */
