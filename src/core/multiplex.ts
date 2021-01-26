@@ -255,7 +255,7 @@ export function multiplex(task_array) {
     // if object, send the Command as-is and spread into acc
     if (arg_type === "OBJECT") {
       if (!sub$) return { ...acc, ...args }
-      command$.next(c)
+      out$.next(c)
       return { ...acc, ...args }
     }
 
@@ -266,7 +266,7 @@ export function multiplex(task_array) {
       if (result instanceof Error) {
         if (erro) {
           let error = erro(acc, result)
-          if (getIn(error, [CMD_SUB$])) return command$.next(error)
+          if (getIn(error, [CMD_SUB$])) return out$.next(error)
           console.warn(err_str, "Promise rejected:", result)
           return acc
         }
@@ -277,7 +277,7 @@ export function multiplex(task_array) {
         let resolved = reso(acc, result)
         // resolved promise with no sub$ key -> spread
         // resolved value into acc
-        if (getIn(resolved, [CMD_SUB$])) command$.next(resolved)
+        if (getIn(resolved, [CMD_SUB$])) out$.next(resolved)
         else if (!sub$) return { ...acc, ...resolved }
         result = resolved
       }
@@ -298,12 +298,12 @@ export function multiplex(task_array) {
       // if the final result is primitive, you can't refer
       // to this value in proceeding Commands -> send the
       // Command as-is, return acc as-is.
-      command$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
+      out$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
       return acc
     }
     // if the result has made it this far, send it along
     // console.log(`${sub$} made it through`)
-    command$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
+    out$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
     return { ...acc, ...result }
   }, Promise.resolve({}))
 }

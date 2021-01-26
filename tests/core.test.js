@@ -9,21 +9,20 @@ import {
   registerRouterDOM,
   out$,
   run$,
-  boot
+  boot,
 } from "../lib/core"
 import { registerCMD } from "../lib/commands"
 
 export const test$ = pubsub({
-  topic: x => x.cmd,
-  id: "test$_stream"
+  topic: (x) => x.cmd,
+  id: "test$_stream",
 })
 
-const rhymes = obj =>
-  Object.entries(obj).map(([stub, letters]) => letters.map(a => a + stub))
+const rhymes = (obj) => Object.entries(obj).map(([stub, letters]) => letters.map((a) => a + stub))
 
 const WSRGX = /\s{2,}/g
 
-export const limerickerize = cmd => ({ subj, bridge: b, ...remain }) => {
+export const limerickerize = (cmd) => ({ subj, bridge: b, ...remain }) => {
   const [r1, r2] = rhymes(remain)
   const res = `
     There once was a ${subj} from ${r1[0]}, 
@@ -36,9 +35,9 @@ export const limerickerize = cmd => ({ subj, bridge: b, ...remain }) => {
   test$.next({ cmd, res: res.replace(WSRGX, "") })
 }
 
-test("Command: basic", done => {
+test("Command: basic", (done) => {
   test$.subscribeTopic("leeds", {
-    next: x => (
+    next: (x) => (
       expect(x.res).toBe(
         `
           There once was a farmer from Leeds,
@@ -50,7 +49,7 @@ test("Command: basic", done => {
       ),
       done()
     ),
-    error: done
+    error: done,
   })
   run$.next(LEEDS)
 })
@@ -65,15 +64,15 @@ const LEEDS = registerCMD({
       "swallowed a packet of",
       "It soon came to",
       "be covered with",
-      "Yet has all the tomatoes he"
-    ]
+      "Yet has all the tomatoes he",
+    ],
   },
-  work: limerickerize("leeds")
+  work: limerickerize("leeds"),
 })
 
-test("Task: basic", done => {
+test("Task: basic", (done) => {
   test$.subscribeTopic("kanass", {
-    next: x => (
+    next: (x) => (
       expect(x.res).toBe(
         `
           There once was a miser from Mass,  
@@ -85,7 +84,7 @@ test("Task: basic", done => {
       ),
       done()
     ),
-    error: done
+    error: done,
   })
 
   run$.next([LEEDS, KANASS])
@@ -101,15 +100,15 @@ const KANASS = registerCMD({
       "drink rain falling onto his",
       "In stormy",
       "be light as a",
-      `but ${bridge[2]} cups made of`
-    ]
+      `but ${bridge[2]} cups made of`,
+    ],
   }),
-  work: limerickerize("kanass")
+  work: limerickerize("kanass"),
 })
 
-test("Task: accumulated values", done => {
+test("Task: accumulated values", (done) => {
   test$.subscribeTopic("acc", {
-    next: x => (
+    next: (x) => (
       expect(x.res).toStrictEqual({
         subj: "miser",
         eeds: ["L", "s", "n"],
@@ -118,13 +117,13 @@ test("Task: accumulated values", done => {
           "drink rain falling onto his",
           "In stormy",
           "be light as a",
-          "but be covered with cups made of"
+          "but be covered with cups made of",
         ],
-        eather: ["w", "f"]
+        eather: ["w", "f"],
       }),
       done()
     ),
-    error: done
+    error: done,
   })
 
   run$.next([LEEDS, KANASS, ACC])
@@ -132,6 +131,6 @@ test("Task: accumulated values", done => {
 
 const ACC = registerCMD({
   sub$: "ACC",
-  args: x => x,
-  work: x => test$.next({ cmd: "acc", res: x })
+  args: (x) => x,
+  work: (x) => test$.next({ cmd: "acc", res: x }),
 })
