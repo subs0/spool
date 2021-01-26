@@ -40,8 +40,8 @@
     "@thi.ng/rstream": "^5.1.0"
   },
   "dependencies": {
-    "@-0/keys": "^0.2.76",
-    "@-0/utils": "^0.2.70"
+    "@-0/keys": "^0.2.77",
+    "@-0/utils": "^0.2.71"
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.12.1",
