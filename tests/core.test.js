@@ -1,11 +1,13 @@
 import { pubsub } from "@thi.ng/rstream"
+import { trace$ } from "@-0/utils"
 
-import { run$ } from "../lib/core"
+import { run$, command$, out$, task$, multiplex } from "../lib/core"
 import { registerCMD } from "../lib/registers"
 
 export const test$ = pubsub({
   topic: (x) => x.cmd,
   id: "test$_stream",
+  work: console.log,
 })
 
 const rhymes = (obj) => Object.entries(obj).map(([stub, letters]) => letters.map((a) => a + stub))
@@ -21,6 +23,7 @@ export const limerickerize = (cmd) => ({ subj, bridge: b, ...remain }) => {
     He'd ${b[2]} ${r2[1]}, 
     ${b[3]} ${r1[2]}
   `
+
   // console.log(res)
   test$.next({ cmd, res: res.replace(WSRGX, "") })
 }
