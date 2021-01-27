@@ -1,1 +1,1 @@
-export { command$, out$, run$, task$, multiplex } from "./multiplex"
+export { command$, out$, run$, task$, tracer$, multiplex } from "./multiplex"

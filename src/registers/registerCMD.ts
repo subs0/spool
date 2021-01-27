@@ -9,7 +9,7 @@ import { ISubscribable } from "@thi.ng/rstream"
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, Command } from "@-0/keys"
 import { xKeyError, diff_keys } from "@-0/utils"
 
-import { command$, out$ } from "../core"
+import { command$, out$, tracer$ } from "../core"
 
 /**
  *
@@ -85,12 +85,7 @@ export const registerCMD = (command: Command = null) => {
 
     if (src$) supplement$CMD(command, out$)
 
-    // @ts-ignore
-    out$.subscribeTopic(
-        sub$,
-        { next: work, error: console.warn },
-        map((puck) => puck[CMD_ARGS])
-    )
+
 
     const CMD = reso
         ? {
@@ -100,6 +95,19 @@ export const registerCMD = (command: Command = null) => {
             [CMD_ERRO]: erro,
         }
         : { [CMD_SUB$]: sub$, [CMD_ARGS]: args }
+
+    // @ts-ignore
+    out$.subscribeTopic(
+        sub$,
+        {
+            next: x => {
+                tracer$.next({ ...CMD, [CMD_ARGS]: x })
+                return work(x)
+            },
+            error: console.warn
+        },
+        map((puck) => puck[CMD_ARGS])
+    )
 
     return CMD
 }

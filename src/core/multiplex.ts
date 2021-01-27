@@ -3,11 +3,15 @@
  */
 
 import { isFunction, isPromise } from "@thi.ng/checks"
-import { pubsub, Subscription, PubSub } from "@thi.ng/rstream"
+import { pubsub, Subscription, PubSub, stream } from "@thi.ng/rstream"
 
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK } from "@-0/keys"
 import { stringify_type, xKeyError, key_index_err, diff_keys } from "@-0/utils"
 import { getIn } from "@thi.ng/paths"
+
+const log = console.log
+
+
 /**
  * User-land event dispatch stream
  *
@@ -25,7 +29,7 @@ import { getIn } from "@thi.ng/paths"
 export const run$: PubSub<any, any> = pubsub({
     topic: (x) => !!x[CMD_SUB$],
     id: "run$_stream",
-    equiv: (x, y) => x === y || y === "_TRACE_STREAM",
+    equiv: (res, tpc) => res === tpc || tpc == "_TRACE_STREAM",
 })
 
 /**
@@ -35,7 +39,7 @@ export const run$: PubSub<any, any> = pubsub({
 export const out$: PubSub<any, any> = pubsub({
     topic: (x) => x[CMD_SUB$],
     id: "out$_stream",
-    equiv: (x, y) => x === y || y === "_TRACE_STREAM",
+    equiv: (res, tpc) => res === tpc || tpc == "_TRACE_STREAM",
 })
 
 /**
@@ -68,6 +72,13 @@ export const task$: Subscription<any, any> = run$.subscribeTopic(
     },
     { id: "task$_stream" }
 )
+
+/**
+ * A stream that will be forwarded all events emitted from
+ * the out$ stream - hooked together during registration
+ * (i.e., `registerCMD`)
+ */
+export const tracer$: Subscription<any, any> = stream()
 
 const err_str = "Spooling Interupted" // <- add doc link to error strings
 
