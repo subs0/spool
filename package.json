@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@-0/keys": "^0.2.81",
-    "@-0/utils": "^0.2.75"
+    "@-0/utils": "^0.2.76"
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.12.1",
