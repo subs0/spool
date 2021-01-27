@@ -1,5 +1,4 @@
 import { pubsub } from "@thi.ng/rstream"
-import { trace$ } from "@-0/utils"
 
 import { run$, command$, out$, task$, multiplex } from "../lib/core"
 import { registerCMD } from "../lib/registers"
