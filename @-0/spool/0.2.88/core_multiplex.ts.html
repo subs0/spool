@@ -1,4 +1,91 @@
-/**
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> core/multiplex.ts</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-commands_register.html">commands/register</a></li><li><a href="module-core.html">core</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Source</p>
+                    <h1>core/multiplex.ts</h1>
+                </header>
+                
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * @module core
  */
 
@@ -26,7 +113,7 @@ const log = console.log
  *    (e.g., popstate / { sub$:  "cancel" })
  *
  */
-export const run$: PubSub<any, any> = pubsub({
+export const run$: PubSub&lt;any, any> = pubsub({
     topic: (x) => !!x[CMD_SUB$],
     id: "run$_stream",
     equiv: (res, tpc) => res === tpc || tpc == "_TRACE_STREAM",
@@ -36,7 +123,7 @@ export const run$: PubSub<any, any> = pubsub({
  * Primary user-land _READ_ stream. For attaching handlers
  * for responding to emmitted Commands
  */
-export const out$: PubSub<any, any> = pubsub({
+export const out$: PubSub&lt;any, any> = pubsub({
     topic: (x) => x[CMD_SUB$],
     id: "out$_stream",
     equiv: (res, tpc) => res === tpc || tpc == "_TRACE_STREAM",
@@ -49,7 +136,7 @@ export const out$: PubSub<any, any> = pubsub({
  * `topic` function used to alert downstream handlers is a
  * simple lookup of the `sub$` key of the command
  */
-export const command$: Subscription<any, any> = run$.subscribeTopic(
+export const command$: Subscription&lt;any, any> = run$.subscribeTopic(
     true,
     {
         next: (x) => out$.next(x),
@@ -64,7 +151,7 @@ export const command$: Subscription<any, any> = run$.subscribeTopic(
  * to `multiplex`er (the heart of `spule`)
  *
  */
-export const task$: Subscription<any, any> = run$.subscribeTopic(
+export const task$: Subscription&lt;any, any> = run$.subscribeTopic(
     false,
     {
         next: multiplex,
@@ -78,9 +165,9 @@ export const task$: Subscription<any, any> = run$.subscribeTopic(
  * the out$ stream - hooked together during registration
  * (i.e., `registerCMD`)
  */
-export const log$: Subscription<any, any> = stream()
+export const tracer$: Subscription&lt;any, any> = stream()
 
-const err_str = "Spooling Interupted" // <- add doc link to error strings
+const err_str = "Spooling Interupted" // &lt;- add doc link to error strings
 
 const nosub$_err = (c, i) =>
     console.warn(`
@@ -150,8 +237,8 @@ const nosub$_err = (c, i) =>
  *
  * // subtask
  * let subtask_login = ({ token }) => [
- *  { sub$: login // <- stream
- *  , args: () => ({ token }) } // <- use acc
+ *  { sub$: login // &lt;- stream
+ *  , args: () => ({ token }) } // &lt;- use acc
  * ]
  *
  * // task
@@ -232,7 +319,7 @@ export function multiplex(task_array) {
         let result = args
 
         /* RESOLVING ARGS */
-        if (arg_type !== "PROMISE" && reso) {
+        if (arg_type !== "PROMISE" &amp;&amp; reso) {
             /**
              * If some signature needs to deal with both Promises
              * and non-Promises, non-Promises are wrapped in a
@@ -241,7 +328,7 @@ export function multiplex(task_array) {
              */
             result = Promise.resolve(args)
         }
-        if (args !== Object(args) && !sub$) {
+        if (args !== Object(args) &amp;&amp; !sub$) {
             nosub$_err(c, i)
             return acc
         }
@@ -292,8 +379,8 @@ export function multiplex(task_array) {
                 result = resolved
             }
         }
-        // no sub$ key & not a promise -> just spread into acc
-        if (!reso && !sub$) return { ...acc, ...result }
+        // no sub$ key &amp; not a promise -> just spread into acc
+        if (!reso &amp;&amp; !sub$) return { ...acc, ...result }
 
         // error, but no error handler
         if (result instanceof Error) {
@@ -317,3 +404,32 @@ export function multiplex(task_array) {
         return { ...acc, ...result }
     }, Promise.resolve({}))
 }
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+</body>
+</html>

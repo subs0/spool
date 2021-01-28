@@ -7,9 +7,9 @@ import { isFunction } from "@thi.ng/checks"
 import { ISubscribable } from "@thi.ng/rstream"
 
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, Command } from "@-0/keys"
-import { xKeyError, diff_keys } from "@-0/utils"
+import { xKeyError, diff_keys, stringify_fn } from "@-0/utils"
 
-import { command$, out$, tracer$ } from "../core"
+import { command$, out$, log$ } from "../core"
 
 /**
  *
@@ -96,12 +96,21 @@ export const registerCMD = (command: Command = null) => {
         }
         : { [CMD_SUB$]: sub$, [CMD_ARGS]: args }
 
+    const CMD_s = reso
+        ? {
+            [CMD_SUB$]: sub$,
+            [CMD_ARGS]: stringify_fn(args),
+            [CMD_RESO]: stringify_fn(reso),
+            [CMD_ERRO]: stringify_fn(erro),
+        }
+        : { [CMD_SUB$]: sub$, [CMD_ARGS]: stringify_fn(args) }
+
     // @ts-ignore
     out$.subscribeTopic(
         sub$,
         {
             next: x => {
-                tracer$.next({ ...CMD, [CMD_ARGS]: x })
+                log$.next(CMD_s)
                 return work(x)
             },
             error: console.warn
