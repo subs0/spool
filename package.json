@@ -1,75 +1,71 @@
 {
-  "name": "@-0/spool",
-  "author": "Logan Powell",
-  "license": "MIT",
-  "version": "0.2.90",
-  "description": "SPA framework built on top of http://thi.ng/umbrella ecosystem",
-  "main": "./lib/index.js",
-  "type": "module",
-  "types": "./lib/index.d.ts",
-  "repository": "https://github.com/subs0/spool",
-  "homepage": "https://github.com/subs0/spool",
-  "scripts": {
-    "typewatch": "tsc --project tsconfig.json",
-    "types": "tsc --project tsconfig.build.json",
-    "madge": "madge --circular lib/",
-    "tests": "npm run madge && concurrently \"npm run typewatch\" \"jest --watchAll\"",
-    "jsdoc": "jsdoc -c jsdoc/jsdoc.json --verbose --debug",
-    "pages": "gh-pages -d @-0/spool",
-    "docs": "npm run types && npm run jsdoc",
-    "patch": "npm version patch && npm run docs && npm run pages && npm publish",
-    "postgit": "git push origin master && npm run patch",
-    "ncu": "ncu -u && npm i && npm audit fix",
-    "git": "npm run ncu && git add . && git commit -m"
-  },
-  "keywords": [
-    "thi.ng",
-    "multiplex",
-    "FRP"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "peerDependencies": {
-    "@thi.ng/arrays": "^0.10.1",
-    "@thi.ng/associative": "5.0.17",
-    "@thi.ng/atom": "^4.1.27",
-    "@thi.ng/checks": "^2.8.0",
-    "@thi.ng/paths": "^4.1.13",
-    "@thi.ng/transducers": "^7.5.8",
-    "@thi.ng/rstream": "^5.1.0"
-  },
-  "dependencies": {
-    "@-0/keys": "^0.2.83",
-    "@-0/utils": "^0.2.80"
-  },
-  "devDependencies": {
-    "@babel/plugin-transform-modules-commonjs": "^7.12.1",
-    "@thi.ng/arrays": "^0.10.1",
-    "@thi.ng/associative": "5.0.17",
-    "@thi.ng/atom": "^4.1.27",
-    "@thi.ng/checks": "^2.8.0",
-    "@thi.ng/paths": "^4.1.13",
-    "@thi.ng/transducers": "^7.5.8",
-    "@thi.ng/rstream": "^5.1.0",
-    "@types/jest": "^26.0.20",
-    "@types/node": "^14.14.22",
-    "@typescript-eslint/eslint-plugin": "^4.14.1",
-    "@typescript-eslint/parser": "^4.14.1",
-    "babel-jest": "^26.6.3",
-    "better-docs": "^2.3.2",
-    "cross-env": "^7.0.3",
-    "eslint": "^7.18.0",
-    "gh-pages": "^3.1.0",
-    "jest": "^26.6.3",
-    "prettier": "^2.2.1",
-    "ts-jest": "^26.5.0"
-  },
-  "prettier": {
-    "singleQuote": false,
-    "printWidth": 100,
-    "endOfLine": "lf",
-    "tabWidth": 2,
-    "semi": false
-  }
+    "name": "@-0/spool",
+    "author": "Logan Powell",
+    "license": "MIT",
+    "version": "0.2.90",
+    "description": "SPA framework built on top of http://thi.ng/umbrella ecosystem",
+    "main": "./lib/index.js",
+    "type": "module",
+    "types": "./lib/index.d.ts",
+    "repository": "https://github.com/subs0/spool",
+    "homepage": "https://github.com/subs0/spool",
+    "scripts": {
+        "typewatch": "tsc --project tsconfig.json",
+        "types": "tsc --project tsconfig.build.json",
+        "madge": "madge --circular lib/",
+        "tests": "npm run madge && concurrently \"npm run typewatch\" \"jest --watchAll\"",
+        "jsdoc": "jsdoc -c jsdoc/jsdoc.json --verbose --debug",
+        "pages": "gh-pages -d @-0/spool",
+        "docs": "npm run types && npm run jsdoc",
+        "patch": "npm version patch && npm run docs && npm run pages && npm publish",
+        "postgit": "git push origin master && npm run patch",
+        "ncu": "ncu -u && npm i && npm audit fix",
+        "git": "git add . && git commit -m"
+    },
+    "keywords": [ "thi.ng", "multiplex", "FRP" ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "peerDependencies": {
+        "@thi.ng/arrays": "^0.10.1",
+        "@thi.ng/associative": "5.0.17",
+        "@thi.ng/atom": "^4.1.27",
+        "@thi.ng/checks": "^2.8.0",
+        "@thi.ng/paths": "^4.1.13",
+        "@thi.ng/transducers": "^7.5.8",
+        "@thi.ng/rstream": "^5.1.0"
+    },
+    "dependencies": {
+        "@-0/keys": "^0.2.83",
+        "@-0/utils": "^0.2.80"
+    },
+    "devDependencies": {
+        "@babel/plugin-transform-modules-commonjs": "^7.12.1",
+        "@thi.ng/arrays": "^0.10.1",
+        "@thi.ng/associative": "5.0.17",
+        "@thi.ng/atom": "^4.1.27",
+        "@thi.ng/checks": "^2.8.0",
+        "@thi.ng/paths": "^4.1.13",
+        "@thi.ng/transducers": "^7.5.8",
+        "@thi.ng/rstream": "^5.1.0",
+        "@types/jest": "^26.0.20",
+        "@types/node": "^14.14.22",
+        "@typescript-eslint/eslint-plugin": "^4.14.1",
+        "@typescript-eslint/parser": "^4.14.1",
+        "babel-jest": "^26.6.3",
+        "better-docs": "^2.3.2",
+        "cross-env": "^7.0.3",
+        "eslint": "^7.18.0",
+        "gh-pages": "^3.1.0",
+        "jest": "^26.6.3",
+        "prettier": "^2.2.1",
+        "ts-jest": "^26.5.0"
+    },
+    "prettier": {
+        "singleQuote": false,
+        "printWidth": 100,
+        "endOfLine": "lf",
+        "tabWidth": 2,
+        "semi": false
+    }
 }
