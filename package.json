@@ -22,7 +22,11 @@
         "ncu": "ncu -u && npm i && npm audit fix",
         "git": "git add . && git commit -m"
     },
-    "keywords": [ "thi.ng", "multiplex", "FRP" ],
+    "keywords": [
+        "thi.ng",
+        "multiplex",
+        "FRP"
+    ],
     "publishConfig": {
         "access": "public"
     },
@@ -36,8 +40,8 @@
         "@thi.ng/rstream": "^5.1.0"
     },
     "dependencies": {
-        "@-0/keys": "^0.2.83",
-        "@-0/utils": "^0.2.80"
+        "@-0/keys": "^0.2.84",
+        "@-0/utils": "^0.2.81"
     },
     "devDependencies": {
         "@babel/plugin-transform-modules-commonjs": "^7.12.1",
