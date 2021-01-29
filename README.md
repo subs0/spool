@@ -356,13 +356,13 @@ mount our router to the DOM.
 ```diff
 // src/routes.js
 
-import { parse } from "spule"
+import { URL2obj } from "@-0/utils"
 
 ...
 
 export const match = async path => {
 - const args = path ? path.split("/") : [];
-+ const args = parse(path).URL_path
++ const args = URL2obj(path).URL_path
 
   let [api, id] = args
 
@@ -480,7 +480,7 @@ command stream is the only way the user changes anything in
 0>- |------c-----------c--[~a~b~a~]-a----c-> : calls
 1>- |ps|---1-----------1----------0-1----1-> : run$
 2>- |t0|---------a~~b~~~~~~~~~~~a~|--------> : task$
-3>- |t1|---c-----------c------------a----c-> : command$
+3>- |t1|---c-----------c------------a----c-> : cmd$
 4>- ---|ps|c-----a--b--c--------a---a----c-> : out$
 
 Userland Handlers:
@@ -495,7 +495,7 @@ c>- ---|tc|*-----------*-----------------*-> : registerCMD
 - `0>-`: userland stream emmissions (`run`)
 - `1>-`: pubsub forking stream (if emmission has a `sub$`)
 - `2>-`: pubsub = `false`? -> `task$` stream
-- `3>-`: pubsub = `true`? -> `command$` stream
+- `3>-`: pubsub = `true`? -> `cmd$` stream
 - `4>-`: pubsub emits to `registerCMD` based on `sub$` value
 
 ### `work` Handlers
@@ -519,7 +519,7 @@ User-land event dispatch stream
 
 This stream is directly exposed to users. Any one-off
 Commands `next`ed into this stream are sent to the
-`command$` stream. Arrays of Commands (Tasks) are sent to
+`cmd$` stream. Arrays of Commands (Tasks) are sent to
 the `task$` stream.
 
 <iframe

@@ -4,12 +4,19 @@
 
 import { map } from "@thi.ng/transducers"
 import { isFunction } from "@thi.ng/checks"
-import { ISubscribable } from "@thi.ng/rstream"
+import { ISubscribable, Subscription, stream } from "@thi.ng/rstream"
 
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, Command } from "@-0/keys"
 import { xKeyError, diff_keys, stringify_fn } from "@-0/utils"
 
-import { command$, out$, log$ } from "../core"
+import { out$ } from "../core"
+
+/**
+ * A stream that will be forwarded all events emitted from
+ * the out$ stream - hooked together during registration
+ * (i.e., `registerCMD`)
+ */
+export const log$: Subscription<any, any> = stream()
 
 /**
  *
@@ -33,7 +40,7 @@ export const supplement$CMD: any = (cmd: Command, downstream: ISubscribable<any>
      * downstream via
      * upstream.subscribe(xf.map(x => downstream.next(x)))
      */
-    const xport = (downstream) => map((x) => downstream.next(isFn ? load(x) : load()))
+    const xport = downstream => map(x => downstream.next(isFn ? load(x) : load()))
     return upstream.subscribe(xport(downstream))
 }
 
@@ -75,8 +82,8 @@ export const registerCMD = (command: Command = null) => {
     const src$ = command[CMD_SRC$]
     const work = command[CMD_WORK]
 
-    const knowns = [CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK]
-    const [unknowns] = diff_keys(knowns, command)
+    const knowns = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK ]
+    const [ unknowns ] = diff_keys(knowns, command)
     // console.log({ knowns, unknowns })
 
     if (unknowns.length > 0) {
@@ -85,24 +92,22 @@ export const registerCMD = (command: Command = null) => {
 
     if (src$) supplement$CMD(command, out$)
 
-
-
     const CMD = reso
         ? {
-            [CMD_SUB$]: sub$,
-            [CMD_ARGS]: args,
-            [CMD_RESO]: reso,
-            [CMD_ERRO]: erro,
-        }
+              [CMD_SUB$]: sub$,
+              [CMD_ARGS]: args,
+              [CMD_RESO]: reso,
+              [CMD_ERRO]: erro
+          }
         : { [CMD_SUB$]: sub$, [CMD_ARGS]: args }
 
     const CMD_s = reso
         ? {
-            [CMD_SUB$]: sub$,
-            [CMD_ARGS]: stringify_fn(args),
-            [CMD_RESO]: stringify_fn(reso),
-            [CMD_ERRO]: stringify_fn(erro),
-        }
+              [CMD_SUB$]: sub$,
+              [CMD_ARGS]: stringify_fn(args),
+              [CMD_RESO]: stringify_fn(reso),
+              [CMD_ERRO]: stringify_fn(erro)
+          }
         : { [CMD_SUB$]: sub$, [CMD_ARGS]: stringify_fn(args) }
 
     // @ts-ignore
@@ -111,11 +116,11 @@ export const registerCMD = (command: Command = null) => {
         {
             next: x => {
                 log$.next(CMD_s) // send every Command to log$ stream
-                return work(x)   // execute side-effects, etc.
+                return work(x) // execute side-effects, etc.
             },
             error: console.warn
         },
-        map((puck) => puck[CMD_ARGS])
+        map(puck => puck[CMD_ARGS])
     )
 
     return CMD

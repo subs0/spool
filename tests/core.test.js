@@ -1,11 +1,11 @@
-import { pubsub } from '@thi.ng/rstream'
+import { pubsub } from "@thi.ng/rstream"
 
-import { run$, command$, out$, task$, multiplex } from '../lib/core'
-import { registerCMD } from '../lib/registers'
+import { run$, cmd$, out$, task$, multiplex } from "../lib/core"
+import { registerCMD, log$ } from "../lib/registers"
 
 export const test$ = pubsub({
     topic : x => x.cmd,
-    id    : 'test$_stream',
+    id    : "test$_stream",
     work  : console.log
 })
 
@@ -24,11 +24,11 @@ export const limerickerize = cmd => ({ subj, bridge: b, ...remain }) => {
   `
 
     // console.log(res)
-    test$.next({ cmd, res: res.replace(WSRGX, '') })
+    test$.next({ cmd, res: res.replace(WSRGX, "") })
 }
 
-test('Command: basic', done => {
-    test$.subscribeTopic('leeds', {
+test("Command: basic", done => {
+    test$.subscribeTopic("leeds", {
         next  : x => (
             expect(x.res).toBe(
                 `
@@ -37,7 +37,7 @@ test('Command: basic', done => {
           It soon came to pass,
           He'd be covered with grass,
           Yet has all the tomatoes he needs
-        `.replace(WSRGX, '')
+        `.replace(WSRGX, "")
             ),
             done()
         ),
@@ -47,23 +47,23 @@ test('Command: basic', done => {
 })
 
 const LEEDS = registerCMD({
-    sub$ : 'LEEDS',
+    sub$ : "LEEDS",
     args : {
-        subj   : 'farmer',
-        eeds   : [ 'L', 's', 'n' ],
-        ass    : [ 'p', 'gr' ],
+        subj   : "farmer",
+        eeds   : [ "L", "s", "n" ],
+        ass    : [ "p", "gr" ],
         bridge : [
-            'swallowed a packet of',
-            'It soon came to',
-            'be covered with',
-            'Yet has all the tomatoes he'
+            "swallowed a packet of",
+            "It soon came to",
+            "be covered with",
+            "Yet has all the tomatoes he"
         ]
     },
-    work : limerickerize('leeds')
+    work : limerickerize("leeds")
 })
 
-test('Task: basic', done => {
-    test$.subscribeTopic('kanass', {
+test("Task: basic", done => {
+    test$.subscribeTopic("kanass", {
         next  : x => (
             expect(x.res).toBe(
                 `
@@ -72,7 +72,7 @@ test('Task: basic', done => {
           In stormy weather,  
           He'd be light as a feather,  
           but be covered with cups made of brass 
-        `.replace(WSRGX, '')
+        `.replace(WSRGX, "")
             ),
             done()
         ),
@@ -83,35 +83,35 @@ test('Task: basic', done => {
 })
 
 const KANASS = registerCMD({
-    sub$ : 'KANASS',
+    sub$ : "KANASS",
     args : ({ ass, bridge }) => ({
-        subj   : 'miser',
-        ass    : [ 'M', ass[1], 'br', ass[0] ],
-        eather : [ 'w', 'f' ],
+        subj   : "miser",
+        ass    : [ "M", ass[1], "br", ass[0] ],
+        eather : [ "w", "f" ],
         bridge : [
-            'drink rain falling onto his',
-            'In stormy',
-            'be light as a',
+            "drink rain falling onto his",
+            "In stormy",
+            "be light as a",
             `but ${bridge[2]} cups made of`
         ]
     }),
-    work : limerickerize('kanass')
+    work : limerickerize("kanass")
 })
 
-test('Task: accumulated values', done => {
-    test$.subscribeTopic('acc', {
+test("Task: accumulated values", done => {
+    test$.subscribeTopic("acc", {
         next  : x => (
             expect(x.res).toStrictEqual({
-                subj   : 'miser',
-                eeds   : [ 'L', 's', 'n' ],
-                ass    : [ 'M', 'gr', 'br', 'p' ],
+                subj   : "miser",
+                eeds   : [ "L", "s", "n" ],
+                ass    : [ "M", "gr", "br", "p" ],
                 bridge : [
-                    'drink rain falling onto his',
-                    'In stormy',
-                    'be light as a',
-                    'but be covered with cups made of'
+                    "drink rain falling onto his",
+                    "In stormy",
+                    "be light as a",
+                    "but be covered with cups made of"
                 ],
-                eather : [ 'w', 'f' ]
+                eather : [ "w", "f" ]
             }),
             done()
         ),
@@ -122,7 +122,7 @@ test('Task: accumulated values', done => {
 })
 
 const ACC = registerCMD({
-    sub$ : 'ACC',
+    sub$ : "ACC",
     args : x => x,
-    work : x => test$.next({ cmd: 'acc', res: x })
+    work : x => test$.next({ cmd: "acc", res: x })
 })

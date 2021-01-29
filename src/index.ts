@@ -1,4 +1,4 @@
 /** @format */
-export { run$, command$, out$, task$, log$ } from "./core"
+export { run$, cmd$, out$, task$ } from "./core"
 
-export { registerCMD } from "./registers"
+export { registerCMD, log$ } from "./registers"
