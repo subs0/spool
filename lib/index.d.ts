@@ -1,2 +1,2 @@
-export { run$, command$, out$, task$, tracer$ } from "./core";
+export { run$, command$, out$, task$, log$ } from "./core";
 export { registerCMD } from "./registers";
