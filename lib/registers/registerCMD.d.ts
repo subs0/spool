@@ -1,4 +1,6 @@
+import { Subscription } from "@thi.ng/rstream";
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, Command } from "@-0/keys";
+export declare const log$: Subscription<any, any>;
 export declare const supplement$CMD: any;
 export declare const registerCMD: (command?: Command) => {
     sub$: any;

@@ -1,1 +1,1 @@
-export { registerCMD } from "./registerCMD";
+export { log$, registerCMD } from "./registerCMD";
