@@ -110,8 +110,8 @@ export const registerCMD = (command: Command = null) => {
         sub$,
         {
             next: x => {
-                log$.next(CMD_s)
-                return work(x)
+                log$.next(CMD_s) // send every Command to log$ stream
+                return work(x)   // execute side-effects, etc.
             },
             error: console.warn
         },
