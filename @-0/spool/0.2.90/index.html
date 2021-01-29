@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> Home</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-commands_register.html">commands/register</a></li><li><a href="module-core.html">core</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p></p>
+                    <h1>Home</h1>
+                </header>
+                
+
+
+
+    
+
+
+    <h3>@-0/spool 0.2.90</h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1><code>spule</code></h1>
+<p>Spule
+~ Scottish: <strong>[ˈspül]</strong> variant of Spool
+~ German: <strong>[ˈʃpuːlə]</strong> Coil, Reel</p>
+<h2>Introduction: State MGMT and Side-Effects</h2>
+<p>All too often, state management (MGMT) is an &quot;add-on&quot;, an
+afterthought of a UI/API. However, you may realize by now -
+if you've spent any significant time using the available
+MGMT libraries - that state (and coupled effects) is the
+most infuriating source of complexity and bugs in modern
+JavaScript apps. Spule aims to be <em>far simpler</em> than the
+status quo by starting with a simple abstraction over the
+hardest parts and working outwards to the easier ones.</p>
+<h2>Getting Started</h2>
+<pre class="prettyprint source"><code>npm install spule
+</code></pre>
+<p>What if you could compose your app logic on an ad-hoc basis
+without creating spagetthi code? Yes, it's possible and one
+of the primary goals of <code>spule</code></p>
+<p>At it's core, <code>spule</code> is async-first. It allows you to write
+your code using <code>async</code>/<code>await</code>/<code>Promises</code> in the most
+painless and composable way you've ever seen. <code>spule</code> does
+some stream-based
+(<a href="https://en.wikipedia.org/wiki/Functional_reactive_programming">FRP</a>)
+gymnastics under the hood to correograph everything,
+however, you won't have to worry about the implementation
+details. <code>spule</code> aims at being approachable to those who
+have zero experience with streams. Let's see some examples.</p>
+<h2>Commands</h2>
+<p>At the core of <code>spule</code> is an async spooler (hence the name),
+which recieves &quot;Commands&quot; and responds to them. We'll go
+into more detail later, but let's jump right in with some
+copy/paste examples.</p>
+<p>Stupid Command example:</p>
+<pre class="prettyprint source lang-js"><code>// src/genie.js
+
+import { run$, registerCMD } from &quot;spule&quot;
+
+const GENIE = registerCMD({
+  sub$: &quot;GENIE&quot;,
+  args: &quot;your wish&quot;,
+  work: x => console.log(&quot;🧞‍♀️:&quot;, x, &quot;is my command&quot;)
+})
+
+// work handler is digested during registration
+
+console.log(GENIE)
+
+// => { sub$: &quot;GENIE&quot;, args: &quot;your wish&quot; }
+
+run$.next(GENIE)
+
+//=> 🧞‍♀️: your wish is my command
+</code></pre>
+<p><code>registerCMD</code> takes a config <code>Object</code>, attaches the <code>work</code>
+callback to a pubsub stream for you and returns a Command
+<code>Object</code> that you can use to trigger that callback
+(subscription based on the Command <code>sub$</code> value).</p>
+<p>This <code>Object</code> signature is not only handy as a means to
+manage a lot of Commands, but it also avails <code>spule</code>'s
+superpower: Tasks</p>
+<h2>Tasks</h2>
+<p>Tasks, like Commands, are <em>just data</em> (including Lambdas).
+Commands are <code>Object</code>s and Tasks are <code>Array</code>s of Commands.
+This allows them to be dis/reassembled and reused on an
+ad-hoc basis. Let's compose our <code>GENIE</code> Command with an API
+call...</p>
+<pre class="prettyprint source lang-js"><code>// src/genie.js (continued)
+
+export const GET__FORTUNE = [
+  // 1st Command args' Object initializes an accumulator
+  { args: { api: &quot;http://yerkee.com/api/fortune&quot; } },
+
+  // lambda args have access to the accumulation
+  {
+    args: ({ api }) => fetch(api).then(r => r.json()),
+    reso: (acc, { fortune }) => ({ fortune }),
+    erro: (acc, err) => ({ error: err })
+  }
+]
+
+const FORTUNE__GENIE = [
+  ...GET__FORTUNE,
+  { ...GENIE, args: ({ fortune }) => fortune }
+]
+
+run$.next(FORTUNE__GENIE)
+
+// => 🧞‍♀️: Deliver yesterday, code today, think tomorrow. is my command
+</code></pre>
+<h1>Logic as Data™</h1>
+<p>As you can see - within a Task - the only required key on a
+Command <code>Object</code> is the <code>args</code> key, which provide the
+signal-passing functionality between intra-Task Commands.
+The only Command that actually does any <code>work</code> here is
+<code>GENIE</code> (the one with a registered <code>sub$</code>).</p>
+<blockquote>
+<p>🔍 UTH (Under the Hood): This intra-Task handoff works via
+an <a href="#TODO-link-to-code">async <code>reduce</code></a> function. Any
+<code>Object</code> returned by a Command is spread into an
+&quot;accumulator&quot; that can be accessed by any following
+Commands within a Task (via a unary Lambda in the <code>args</code>
+position).</p>
+</blockquote>
+<p>Hopefully you get a sense of how handy this is already. Have
+you ever wished you could pull out and pass around a <code>.then</code>
+from one Promise chain to compose with another? Well, now
+you - effectively - can. Not only can you recombine Promises
+with Tasks, you can also recombine side-effecting code. This
+is &quot;Logic as Data&quot;™</p>
+<p>And, yes, it gets even better. It may be obvious that you
+can de/compose or spread together Tasks (they're just
+<code>Array</code>s). But, what if the shape/signature of your
+&quot;Subtask&quot; doesn't match that of the Task that you'd like
+spread it into?</p>
+<h3>Subtasks</h3>
+<pre class="prettyprint source lang-js"><code>// src/zoltar.js
+
+import { run$, registerCMD } from &quot;spule&quot;
+
+import { GET__FORTUNE } from &quot;./genie&quot;
+
+const ZOLTAR = registerCMD({
+  sub$: &quot;ZOLTAR&quot;,
+  args: { zoltar: &quot;make your wish&quot; },
+  work: ({ zoltar }) => console.log(&quot;🧞‍♂️:&quot;, zoltar)
+})
+
+const TOM = registerCMD({
+  sub$: &quot;TOM&quot;,
+  args: { tom: &quot;👶: I wish I were big&quot; },
+  work: ({ tom }) => console.log(tom)
+})
+
+/**
+ * use a unary function that takes the accumulator
+ * Object and returns a Task
+ */
+const ZOLTAR__X = ({ zoltar }) => [
+  { ...TOM, args: { tom: &quot;🧒: I wish I was small again&quot; } },
+  { ...ZOLTAR, args: { zoltar } }
+]
+
+const BIG__MORAL = [
+  ZOLTAR,
+  TOM,
+  { ...ZOLTAR, args: { zoltar: &quot;your wish is granted&quot; } },
+  ...GET__FORTUNE,
+  ({ fortune }) => ZOLTAR__X({ zoltar: fortune })
+]
+
+run$.next(BIG__MORAL)
+
+//=> 🧞‍♂️: make your wish
+
+//=> 👶: I wish I were big
+
+//=> 🧞‍♂️: your wish is granted
+
+//=> 🧒: I wish I was small again
+
+//=> 🧞‍♂️: Growing old is mandatory; growing up is optional.
+</code></pre>
+<p>Just as using a unary <code>args</code> function in a Command allows
+passing state between Commands, you can use a unary function
+within a Task to pass state between Subtasks.</p>
+<h2>Goodbye 🍝 Code!</h2>
+<p>This gives new meaning to the term &quot;side-effect&quot; as - in
+<code>spule</code> - side-effects are kept <strong>on the side</strong> and <em>out of
+the guts of your logic</em>. This frees you from the pain that
+tight-coupling of state, side-effects and logic entails.
+Every feature is <strong>strongly decoupled</strong> from the others
+providing a DX that is versatile, modular and composable.</p>
+<h5>TODO: IMAGE(s) ♻ Framework Architecture</h5>
+<h3>Command Keys</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Role</th>
+<th>Required for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>args</code></td>
+<td>Any</td>
+<td>Command payload/accumulator transforming lambda</td>
+<td>always</td>
+</tr>
+<tr>
+<td><code>sub$</code></td>
+<td>String</td>
+<td>Pubsub stream topic: connects Command to handler</td>
+<td><code>work</code></td>
+</tr>
+<tr>
+<td><code>work</code></td>
+<td>Lambda</td>
+<td>dispatch side-effects/state-updates on Command</td>
+<td>&quot;work&quot;</td>
+</tr>
+<tr>
+<td><code>reso</code></td>
+<td>Lambda</td>
+<td>Promise <code>args</code> resolution handler</td>
+<td>Promises</td>
+</tr>
+<tr>
+<td><code>erro</code></td>
+<td>Lambda</td>
+<td>Promise <code>args</code> rejection handler</td>
+<td>Promises</td>
+</tr>
+<tr>
+<td><code>src$</code></td>
+<td>Stream</td>
+<td>Upstream/source stream (<a href="#advanced">advanced</a>)</td>
+<td>optional</td>
+</tr>
+</tbody>
+</table>
+<h2>The <code>SET_STATE</code> Command (built-in)</h2>
+<p>TODO</p>
+<h3>Shorthand Symbols Glossary (<code>spule</code> surface grammar)</h3>
+<p>Now that we've seen some examples of Commands and Tasks in use, we'll use a shorthand syntax for describing Task/Command signatures as a compact conveyance when convenient.</p>
+<table>
+<thead>
+<tr>
+<th>Symbol</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{C}</code></td>
+<td>Command <code>Object</code></td>
+</tr>
+<tr>
+<td><code>{*}</code></td>
+<td><code>Object</code></td>
+</tr>
+<tr>
+<td><code>#</code></td>
+<td>Primitive value (boolean, string, number)</td>
+</tr>
+<tr>
+<td><code>{?}</code></td>
+<td>Promise</td>
+</tr>
+<tr>
+<td><code>{A}</code></td>
+<td>Accumulator <code>Object</code></td>
+</tr>
+<tr>
+<td><code>(*) =&gt;</code></td>
+<td>Lambda with any number of parameters</td>
+</tr>
+<tr>
+<td><code>(+) =&gt;</code></td>
+<td>Non-nullary lambda</td>
+</tr>
+<tr>
+<td><code>(1) =&gt;</code></td>
+<td>Unary lambda</td>
+</tr>
+<tr>
+<td><code>(0) =&gt;</code></td>
+<td>Nullary lambda (aka &quot;thunk&quot;)</td>
+</tr>
+<tr>
+<td><code>[{C},,]</code> or <code>[T]</code></td>
+<td>Task</td>
+</tr>
+<tr>
+<td><code>[,,T,,]</code> or <code>[sT]</code></td>
+<td>Subtask</td>
+</tr>
+</tbody>
+</table>
+<h2>Router</h2>
+<p>One of the things that can be really frustrating to users of
+some frameworks is either the lack of a built-in router or
+one that seems tacked-on after the fact. <code>spule</code> was built
+with the router in mind.</p>
+<p><code>spule</code> provides two routers:</p>
+<ol>
+<li>A DOM router (for clients/SPAs)</li>
+<li>a data-only router (for servers/Node).</li>
+</ol>
+<blockquote>
+<p>🔍 UTH: The DOM router is built on top of the data-only
+router. Both are implemented as Tasks.</p>
+</blockquote>
+<h3>URL = Lens</h3>
+<p>What is a URL? It's really just a path to a specific
+resource or collection of resources. Before the glorious age
+of JavaScript, this - in fact - was <em>the only way</em> you could
+access the Internet. You typed in a URL, which pointed to
+some file within a directory stored on a computer at some
+specific address.</p>
+<p>Taking queues from the best parts of functional programming,
+<code>spule</code>'s router is really just a
+<a href="https://medium.com/javascript-scene/lenses-b85976cb0534">lens</a>
+into the application state. As natural as URLs are to remote
+resources, this router accesses local memory using
+<a href="http://thi.ng/paths">paths</a></p>
+<p>At it's core the <code>spule</code> router doesn't do very much. It
+relies on a JavaScript <code>Map</code> implementation that retains the
+<code>Map</code> API, but has <a href="https://en.wikipedia.org/wiki/Value_semantics">value
+semantics</a> -
+rather than identity semantics (aka:
+<a href="https://youtu.be/-6BsiVyC1kM?t=240">PLOP</a>), which the
+native <code>Map</code> implementation uses - for evaluating equality
+of a non-primitive <code>Map</code> keys (e.g., for <code>Object</code>/<code>Array</code>
+keys).</p>
+<p>This - dare I say <em>better</em> - implementation of Map avails
+something that many are asking for in JS: <a href="https://github.com/tc39/proposal-pattern-matching">pattern
+matching</a>.
+With pattern matching, we don't have to resort to any
+non-intuitive/complex/fragile regular expression gymnastics
+for route matching.</p>
+<p>To start, we'll diverge away from the problem at hand for
+just a moment look at some of the benefits of a
+value-semantic <code>Map</code>...</p>
+<p>Value semantics have so many benefits. As a router, just
+one. So, how might we apply such a pattern matching solution
+against the problem of routing?</p>
+<pre class="prettyprint source lang-js"><code>// src/routes.js
+import { EquivMap } from &quot;@thi.ng/associative&quot;
+
+const known = x => [&quot;fortunes&quot;, &quot;lessons&quot;].find(y => y === x)
+const four04 = [{ chinese: 404, english: 404 }]
+const home = [{ chinese: &quot;家&quot;, english: &quot;home&quot; }]
+const url = &quot;https://fortunecookieapi.herokuapp.com/v1/&quot;
+const query = (a, b) =>
+  fetch(`${url}${a}?limit=1&skip=${b}`).then(r => r.json())
+
+export const match = async path => {
+  const args = path ? path.split(&quot;/&quot;) : []
+
+  let [api, id] = args
+
+  const data =
+    new EquivMap([
+      // prevent unneeded requests w/thunks (0)=>
+      [[], () => home],
+      [[known(api), id], () => query(api, id)], // guarded match
+      [[known(api)], () => query(api, 1)] // guarded match
+    ]).get(args) || (() => four04)
+
+  // call the thunk to trigger the actual request
+  const res = await data()
+  const r = res[0]
+
+  return r.message || `${r.chinese}: ${r.english}`
+}
+
+const log = console.log
+
+match(&quot;fortunes/88&quot;).then(log)
+// //=> &quot;A handsome shoe often pinches the foot.&quot;
+
+match(&quot;&quot;).then(log)
+// //=> &quot;家: home&quot;
+
+match(&quot;lessons/4&quot;).then(log)
+// //=> &quot;请给我一杯/两杯啤酒。: A beer/two beers, please.&quot;
+
+match(&quot;bloop/21&quot;).then(log)
+// //=> &quot;404: 404&quot;
+</code></pre>
+<p>If you can see the potential of pattern matching for other
+problems you may have encountered, you can check out the
+<a href="#more-pattern-matching">more detailed section</a> later. We
+can create pattern-matching
+<a href="https://en.wikipedia.org/wiki/Guard_(computer_science)#Pattern_guard">guards</a>
+by using an <em>in situ</em> expression that either returns a
+&quot;falsy&quot; value or the value itself.</p>
+<p>Even if you don't end up using <code>spule</code>, you may find the
+<a href="https://github.com/thi-ng/umbrella/tree/develop/packages/associative"><code>@thi.ng/associative</code></a>
+library very handy!</p>
+<p>Now, let's integrate our router. Everything pretty much
+stays the same, but we'll need to make a few changes to
+mount our router to the DOM.</p>
+<pre class="prettyprint source lang-diff"><code>// src/routes.js
+
+import { URL2obj } from &quot;@-0/utils&quot;
+
+...
+
+export const match = async path => {
+- const args = path ? path.split(&quot;/&quot;) : [];
++ const args = URL2obj(path).URL_path
+
+  let [api, id] = args
+
+  const data =
+    new EquivMap([
+      [[], () => home],
+      [[known(api), id], () => query(api, id)],
+      [[known(api)], () => query(api, 1)]
+    ]).get(args) || (() => four04)
+
+  const res = await data()
+  const r = res[0]
+
+- return r.message || `${r.chinese}: ${r.english}`
++ return {
++   URL_data: r.message || `${r.chinese}: ${r.english}`,
++ }
+}
+
+- ...
+</code></pre>
+<iframe
+  src="https://stackblitz.com/edit/spule-router?embed=1&file=routes.js&hideExplorer=1"
+  style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+  allow="accelerometer; gyroscope"
+></iframe>
+<p>TODO</p>
+<p>It's beyond the scope of this introduction to <code>spule</code> to
+dive into the implementation of our next example. It will
+work, but you try it out for yourself on your own (toy)
+problem in order to get a feel for it.</p>
+<h3>UI-first or UI-last?</h3>
+<p>As you may deduce - if you've gotten this far - is there's a
+heavy data-oriented/biased approach taken by <code>spule</code>. In
+fact, we argue that the UI should be informed by the data,
+not the other way around.</p>
+<p>I.e., start with building out the application state for your
+various routes and then frame it with a UI. Think of the
+application state as your information architecture and the
+UI as your information interior design. While it's possible
+to start with the design and end with an information
+architecture, the customer journey can suffer from an
+over-reliance on &quot;signage&quot; for helping them navigate through
+the information.</p>
+<p>It's not uncommon to start an application/site design with a
+&quot;site map&quot;. Think of this approach like a site map on
+steroids</p>
+<h2>Advanced</h2>
+<p>ADVANCED USE ONLY 👽</p>
+<p>HURL tries to hide the stream implentation from the user as
+much as possible, but allows you to go further down the
+rabbit hole if so desired. You may send Commands to a
+separate stream of your own creation during a Task by using
+a nullary (&quot;thunk&quot;) <code>(0)=&gt;</code> function signature as the <code>args</code>
+value of a Command. If this is the case, the spool assumes
+the <code>sub$</code> key references a stream and sends the return
+value of the thunk to that stream This feature can come in
+handy for &quot;fire and forget&quot; events (e.g., logging,
+analytics, etc.)</p>
+<pre class="prettyprint source lang-js"><code>import { stream } from &quot;@thi.ng/rstream&quot;
+import { map, comp } from &quot;@thi.ng/transducers&quot;
+// ad-hoc stream
+let login = stream().subscribe(
+  comp(
+    map(x => console.log(&quot;login ->&quot;, x)),
+    map(({ token }) => loginToMyAuth(token))
+  )
+)
+// subtask ({A})=>
+let ANALYTICS = ({ token }) => [
+  {
+    sub$: login, // &lt;- stream
+    // thunk custom stream dispatch (0)=>
+    args: () => ({ token })
+  }
+]
+// task
+let task = [
+  // no sub$, just pass data
+  { args: { href: &quot;https://my.io/auth&quot; } },
+  { sub$: login, args: () => &quot;logging in...&quot; },
+  {
+    sub$: &quot;AUTH&quot;,
+    args: ({ href }) => fetch(href).then(r => r.json()),
+    erro: (acc, err) => ({ sub$: &quot;cancel&quot;, args: err }),
+    reso: (acc, res) => ({ token: res })
+  },
+  acc => ANALYTICS(acc),
+  { sub$: login, args: () => &quot;log in success&quot; }
+]
+</code></pre>
+<h2>Stream Architecture:</h2>
+<p><code>run$</code> is the primary event stream exposed to the user via
+the <code>ctx</code> object injected into every <code>hdom</code> component the
+command stream is the only way the user changes anything in
+<code>hurl</code></p>
+<h3>Marble Diagram</h3>
+<pre class="prettyprint source lang-diff"><code>0>- |------c-----------c--[~a~b~a~]-a----c-> : calls
+1>- |ps|---1-----------1----------0-1----1-> : run$
+2>- |t0|---------a~~b~~~~~~~~~~~a~|--------> : task$
+3>- |t1|---c-----------c------------a----c-> : cmd$
+4>- ---|ps|c-----a--b--c--------a---a----c-> : out$
+
+Userland Handlers:
+
+a>- ---|ta|------*--------------*---*------> : registerCMD
+b>- ---|tb|---------*----------------------> : registerCMD
+c>- ---|tc|*-----------*-----------------*-> : registerCMD
+</code></pre>
+<h3>Streams</h3>
+<ul>
+<li><code>0&gt;-</code>: userland stream emmissions (<code>run</code>)</li>
+<li><code>1&gt;-</code>: pubsub forking stream (if emmission has a <code>sub$</code>)</li>
+<li><code>2&gt;-</code>: pubsub = <code>false</code>? -&gt; <code>task$</code> stream</li>
+<li><code>3&gt;-</code>: pubsub = <code>true</code>? -&gt; <code>cmd$</code> stream</li>
+<li><code>4&gt;-</code>: pubsub emits to <code>registerCMD</code> based on <code>sub$</code> value</li>
+</ul>
+<h3><code>work</code> Handlers</h3>
+<ul>
+<li><code>4&gt;-</code> this is the stream to which the user (and framework)
+attaches <code>work</code> handlers. Handlers receive events they
+subscribe to as topics based on a <code>sub$</code> key in a Command
+object.</li>
+</ul>
+<h4>Built-in Commands/Tasks:</h4>
+<ul>
+<li><code>SET_STATE</code>: Global state update Command</li>
+<li><code>URL__ROUTE</code>: Routing Task</li>
+<li>&quot;FLIP&quot; :
+<a href="https://aerotwist.com/blog/flip-your-animations/">F.L.I.P.</a>
+animations Commands for route/page transitiions</li>
+</ul>
+<h3><code>run$</code></h3>
+<p>User-land event dispatch stream</p>
+<p>This stream is directly exposed to users. Any one-off
+Commands <code>next</code>ed into this stream are sent to the
+<code>cmd$</code> stream. Arrays of Commands (Tasks) are sent to
+the <code>task$</code> stream.</p>
+<iframe
+  src="https://stackblitz.com/edit/spule-spa?embed=1&file=index.js&hideExplorer=1"
+  style="width:100%; height:900px; border:0; border-radius: 4px; overflow:hidden;"
+  allow="accelerometer; gyroscope"
+></iframe>
+<h2>Constants Glossary</h2>
+<table>
+<thead>
+<tr>
+<th>URL component key</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DOM</td>
+<td>DOM node target</td>
+</tr>
+<tr>
+<td>URL</td>
+<td>full URL/route</td>
+</tr>
+<tr>
+<td>URL_path</td>
+<td>route path as array</td>
+</tr>
+<tr>
+<td>URL_domain</td>
+<td>top-level domain as array</td>
+</tr>
+<tr>
+<td>URL_subdomain</td>
+<td>subdomain as array</td>
+</tr>
+<tr>
+<td>URL_query</td>
+<td>node querystring parsed URL parameters</td>
+</tr>
+<tr>
+<td>URL_hash</td>
+<td>hash string to/from URL if any</td>
+</tr>
+<tr>
+<td>URL_data</td>
+<td>data returned by router</td>
+</tr>
+<tr>
+<td>URL_page</td>
+<td>page component to render URL_data with</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>router config key</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HEAD</td>
+<td>metadata wrapper for router (targets DOM <head>)</td>
+</tr>
+<tr>
+<td>BODY</td>
+<td>data wrapper for router</td>
+</tr>
+<tr>
+<td>prep</td>
+<td>pre-router behavior Task/Command injection</td>
+</tr>
+<tr>
+<td>post</td>
+<td>post=router behavior Task/Command injection</td>
+</tr>
+<tr>
+<td>prefix</td>
+<td>URL path string for the router to ignore</td>
+</tr>
+<tr>
+<td>router</td>
+<td>@thi.ng/EquivMap pattern matching function</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Command key (🔎)</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sub$</td>
+<td>Command primary/unique key (topic subscription)</td>
+</tr>
+<tr>
+<td>args</td>
+<td>signal passing intra-Task Command state value</td>
+</tr>
+<tr>
+<td>reso</td>
+<td>Promise resolution handler</td>
+</tr>
+<tr>
+<td>erro</td>
+<td>Promise rejection handler</td>
+</tr>
+<tr>
+<td>work</td>
+<td>where Commands' actual &quot;work&quot; is done</td>
+</tr>
+<tr>
+<td>src$</td>
+<td>upstream (source stream) Command connector</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th><code>boot</code> config key</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>run</td>
+<td>primary userland dispatch function</td>
+</tr>
+<tr>
+<td>state</td>
+<td>global immutable state container</td>
+</tr>
+<tr>
+<td>root</td>
+<td>DOM mount node for application</td>
+</tr>
+<tr>
+<td>app</td>
+<td>root application view</td>
+</tr>
+<tr>
+<td>trace</td>
+<td>enable logging of every global state update</td>
+</tr>
+<tr>
+<td>draft</td>
+<td>state shape scaffolding</td>
+</tr>
+</tbody>
+</table>
+<h3>More Pattern Matching</h3>
+<pre class="prettyprint source lang-js"><code>import { EquivMap } from &quot;@thi.ng/associative&quot;
+
+const haiku = args => {
+  const { a, b, c } = args
+  const [d] = c || []
+
+  const line =
+    new EquivMap([
+      [{ a, b }, `${a} are ${b}`],
+      [{ a, b, c: [d] }, `But ${a} they don't ${b} ${d}`]
+    ]).get(args) || &quot;refrigerator&quot;
+
+  console.log(line)
+}
+
+haiku({ a: &quot;haikus&quot;, b: &quot;easy&quot; })
+//=> haikus are easy
+
+haiku({ a: &quot;sometimes&quot;, b: &quot;make&quot;, c: [&quot;sense&quot;] })
+//=> But sometimes they don't make sense
+
+haiku({ b: &quot;butterfly&quot;, f: &quot;cherry&quot;, a: &quot;blossom&quot; })
+//=> refrigerator
+</code></pre>
+<p>We can use any expression in the context of an Object as a
+guard. Let's see an example of guarding matches for
+<code>Objects</code>...</p>
+<pre class="prettyprint source lang-js"><code>let guarded_matcher = args => {
+  let { a, c } = args
+
+  let res =
+    // for guards on objects use computed properties
+    new EquivMap([
+      [{ a, [c > 3 && &quot;c&quot;]: c }, `${c} is greater than 3`],
+      [{ a, [c &lt; 3 && &quot;c&quot;]: c }, `${c} is less than 3`]
+    ]).get(args) || &quot;no match&quot;
+
+  console.log(res)
+}
+
+guarded_matcher({ a: &quot;b&quot;, c: 2 })
+//=> less than 3
+
+guarded_matcher({ a: &quot;b&quot;, c: 3 })
+//=> no match
+
+guarded_matcher({ a: &quot;b&quot;, c: 4 })
+//=> greater than 3
+</code></pre>
+<ul>
+<li>Naming Conventions:
+<ul>
+<li>constants: <code>CAPITAL_SNAKE_CASE</code>
+<ul>
+<li>generally accepted convention for constants in JS</li>
+<li>used for defining Commands (as though they might cause
+side effects, their subscription names are constant -
+i.e., a signal for emphasising this aspect of a
+Command)</li>
+</ul>
+</li>
+<li>pure functions: <code>snake_case</code>
+<ul>
+<li>some novelty here due to pure functions acting like
+constants in that with the same input they always
+return the same output</li>
+</ul>
+</li>
+<li>impure functions: <code>camelCase</code>
+<ul>
+<li>regular side-effecty JS</li>
+</ul>
+</li>
+<li>Tasks: <code>DOUBLE__UNDERSCORE__SNAKE__CASE</code>
+<ul>
+<li>implies the inputs and outputs on either end of a Task</li>
+<li>Tasks also should be treated as pure functions where
+the output is really just data (and lambdas). This is
+going in the direction of &quot;code as data&quot;</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>lots'o'examples</li>
+</ul>
+<h2>Credits</h2>
+<p><code>spule</code> is built on the <a href="https://thi.ng/umbrella">@thi.ng/umbrella</a> ecosystem</p></article>
+    </section>
+
+
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+</body>
+</html>
