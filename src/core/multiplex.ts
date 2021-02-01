@@ -226,8 +226,8 @@ export function multiplex(task_array) {
 
         // ensure no unknown Command props
         const knowns = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK ]
-        const [ unknowns ] = diff_keys(knowns, c)
-        if (unknowns.length > 0) throw new Error(xKeyError(err_str, c, unknowns, sub$, i))
+        const [ unknowns, unknown_kvs ] = diff_keys(knowns, c)
+        if (unknowns.length > 0) throw new Error(xKeyError(err_str, c, unknown_kvs, sub$, i))
 
         const arg_type = stringify_type(args)
 
@@ -280,7 +280,7 @@ export function multiplex(task_array) {
          * Promise to "lift" them into the proper context for
          * handling
          */
-        // CASE: ARGS = PROMISE SIG, BUT NOT PROMISE
+        // CASE: ARGS = PROMISE SIG, BUT NOT PROMISE 🤔 what happens to resolved promises?
         if (arg_type !== "PROMISE" && reso) result = Promise.resolve(args)
         // CASE: ARGS = PROMISE
         if (arg_type === "PROMISE") result = await args.catch(e => e)
@@ -320,10 +320,10 @@ export function multiplex(task_array) {
                             let ERR_CMD = erro(acc, result)
                             out$.next(ERR_CMD)
                         }
-                        erro(acc, result)
+                        acc = erro(acc, result)
                     }
                 }
-                // All other cases, reset accumulator
+                // implicitly reset if no error handler provided
                 acc = null
             }
             // no promise handler
@@ -364,7 +364,7 @@ export function multiplex(task_array) {
             return acc
         }
 
-        console.log(`NO CONDITIONS MET FOR ${sub$}`)
+        //console.log(`NO CONDITIONS MET FOR ${sub$}`)
         // if the result has made it this far, send it along
         out$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
         return { ...acc, ...result }
