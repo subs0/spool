@@ -2,6 +2,9 @@ import { stream } from "@thi.ng/rstream"
 import { map } from "@thi.ng/transducers"
 
 import { CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SRC$, CMD_SUB$, CMD_WORK } from "@-0/keys"
+import { stringify_type } from "@-0/utils"
+
+import { cmd, log } from "../fixtures"
 import { run$, cmd$, out$, task$, multiplex } from "../../src/core"
 import { registerCMD, log$ } from "../../src/registers"
 
@@ -13,92 +16,270 @@ import { registerCMD, log$ } from "../../src/registers"
  *    Commands)
  * 2. Refactor to Pattern Matching with thi.ng/EquivMap 💡 nested patterns { Command: { args: { } } }
  *      - step 1) check for args: !args ? NOOP
- *      - step 1) stringify_type(args)
- *      - step 2) pattern match Command
- *      - step 3) pattern/case match args
+ *      - step 2) resolve args
+ *      - step 3) stringify_type(args)
+ *      - step 4) pattern match keys
  *
- * No. | Pattern Match for Commands : | Fn | dispatch?             | accumulator (A) effect
- * --- | ---                          |--- | ---                   | ---
- * a1  | { sub$ }                     | 🔴 | N: No args            | Noop
- * a2  | { args }                     | 💛 | N: No sub$            | Can be spread into or reset A :hash
- * a3  | { reso }                     | 🔴 | N: No sub$            | None
- * a4  | { erro }                     | 🔴 | N: No sub$            | None
- * a5  | { sub$, reso }               | 🔴 | N: No args            | Noop
- * a6  | { sub$, erro }               | 🔴 | N: No args            | Noop
- * a7  | { sub$, args }               | 💚 | Y:                    | Static data: See [b1, b2, b4]
- * a8  | { args, reso }               | 💛 | N: No sub$            | data acq. only see [b]
- * a9  | { args, erro }               | 💛 | N: No sub$            | erro only for reso? 🤔
- * a10 | { reso, erro }               | 🔴 | N: No sub$            | NoOp: no args
- * a11 | { sub$, args, reso }         | 💚 | Y: resolved Promise   | { ...A, ...await reso(await args) }
- * a12 | { sub$, args, erro }         | 💛 | Y:                    | Yes, but no Promises
- * a13 | { sub$, reso, erro }         | 🔴 | N: No args            | Noop
- * a14 | { args, reso, erro }         | 💛 | N: No sub$            | xformed by reso ->...res
- * a15 | { sub$, args, reso, erro }   | 💚 | Y: resolved Promise   | xformed by reso ->...res
- * 
- * No. | Pattern Match for `args` :   | Fn | dispatch?             | Default accumulator (A) effect
- * --- | ---                          |--- | ---                   | ---
- * b0  | null                         | 🔴 | No                    | reset??
- * b1  | 1                            | 🔴 | No                    | NA
- * b2  | {*}                          | 💚 | No                    | A = {...A, ...args }
- * b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
- * b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
- * 
- * No. | reso:                        | Fn | dispatch?             | accumulator (A) effect
- * --- | ---                          |--- | ---                   | --- 
- * c1  | 1                            | 🔴 | No                    | reset?? 
- * c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
- * 
- * No. | for resolved values:         | Fn | dispatch?             | accumulator (A) effect
- * --- | ---                          |--- | ---                   | ---
- * d1  | 1                            | b1 | b1                    | b1
- * d2  | {*}                          | b2 | b2                    | b2
- * d3  | {P}                          | b3 | b3                    | b3
- * 
- * No. | erro:                        | Fn | dispatch?             | accumulator (A) effect
- * --- | ---                          |--- | ---                   | ---
- * 2   | undefined                    | 🔴 | No                    | A = null
- * 2   | 1                            | 🔴 | No                    | A = null
- * 2   | {C}                          | 💛 | Y: if Command Obj     | A = null
- * 3   | (acc, err, out$) =>          | 💚 | No                    | A = erro(acc, err, out$)
- * 
- * 
- *
- * to dispatch to ad-hoc stream...
- *
+// 
+// No. | Pattern Match for Commands : | Fn | dispatch?             | accumulator (A) effect
+// --- | ---                          |--- | ---                   | ---
+// a1  | { sub$ }                     | 🔴 | N: No args            | Noop
+// a2  | { args }                     | 💛 | N: No sub$            | Can be spread into or reset A :hash
+// a3  | { reso }                     | 🔴 | N: No sub$            | None
+// a4  | { erro }                     | 🔴 | N: No sub$            | None
+// a5  | { sub$, reso }               | 🔴 | N: No args            | Noop
+// a6  | { sub$, erro }               | 🔴 | N: No args            | Noop
+// a7  | { sub$, args }               | 💚 | Y:                    | Static data: See [b1, b2, b4]
+// a8  | { args, reso }               | 💛 | N: No sub$            | data acq. only see [b]
+// a9  | { args, erro }               | 💛 | N: No sub$            | erro only for reso? 🤔
+// a10 | { reso, erro }               | 🔴 | N: No sub$            | NoOp: no args
+// a11 | { sub$, args, reso }         | 💚 | Y: resolved Promise   | { ...A, ...await reso(await args) }
+// a12 | { sub$, args, erro }         | 💛 | Y:                    | Yes, but no Promises
+// a13 | { sub$, reso, erro }         | 🔴 | N: No args            | Noop
+// a14 | { args, reso, erro }         | 💛 | N: No sub$            | xformed by reso ->...res
+// a15 | { sub$, args, reso, erro }   | 💚 | Y: resolved Promise   | xformed by reso ->...res
+
+// No. | Pattern Match for `args` :   | Fn | dispatch?             | Default accumulator (A) effect
+// --- | ---                          |--- | ---                   | ---
+// b0  | null                         | 🔴 | No                    | reset??
+// b1  | 2                            | 🔴 | No                    | NA
+// b2  | {*}                          | 💚 | No                    | A = {...A, ...args }
+// b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
+// b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// b5  | async (acc) => await         | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// b6  | () =>                        | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// 
+// No. | reso:                        | Fn | dispatch?             | accumulator (A) effect
+// --- | ---                          |--- | ---                   | --- 
+// c1  | 2                            | 🔴 | No                    | reset?? 
+// c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
+// 
+// No. | for resolved values:         | Fn | dispatch?             | accumulator (A) effect
+// --- | ---                          |--- | ---                   | ---
+// d1  | 2                            | b1 | b1                    | b1
+// d2  | {*}                          | b2 | b2                    | b2
+// d3  | {P}                          | b3 | b3                    | b3
+// d4  | {E}                          | 🔴 | No                    | default: null out
+// 
+// No. | erro:                        | Fn | dispatch?             | accumulator (A) effect
+// --- | ---                          |--- | ---                   | ---
+// e1  | undefined                    | 🔴 | No                    | A = null
+// e2  | 2                            | 🔴 | No                    | A = null
+// e3  | {C}                          | 💛 | Y: if Command Obj     | A = null
+// e4  | (acc, err, out$) =>          | 💚 | No                    | A = erro(acc, err, out$)
+// 
+// to dispatch to ad-hoc stream...
+//
  * 2. Create a test for each.
- *
  */
 
-// fixtures
-const sub$_1 = "1"
-const sub$_2 = "2"
-const sub$_3 = "3"
+// No. | Pattern Match for Commands : | Fn | dispatch?             | accumulator (A) effect
+// a1  | { sub$ }                     | 🔴 | N: No args            | Noop
+const cmd_s = { [CMD_SUB$]: "cmd_s" }
 
-//const hello_cb = x => jest.fn(x => x + " world")
-const args_primitive = 1
-const args_object = { key: "val" }
-const args_Promise = x => new Promise((r, e) => setTimeout(() => r(x), 1000))
-const args_async = async x => await args_Promise(x)
+// a2  | { args }                     | 💛 | N: No sub$            | Can be spread into or reset A :hash
+// b0  | null                         | 🔴 | No                    | reset??
+const cmd_a_null = { ...cmd.a_null }
 
-const work_primitive = jest.fn(y => "hello " + y)
+// a2  | { args }                     | 💛 | N: No sub$            | Can be spread into or reset A :hash
+// b1  | 2                            | 🔴 | No                    | NA
+const cmd_a_prim = { ...cmd.a_prim }
 
-describe("fixtures", () => {
-    test("promises", () => {
-        return args_Promise({ hello: "world" }).then(d =>
-            expect(d).toMatchObject({ hello: "world" })
-        )
-    })
+// a2  | { args }                     | 💛 | N: No sub$            | Can be spread into or reset A :hash
+// b2  | {*}                          | 💚 | No                    | A = {...A, ...args }
+const cmd_a_obj = { ...cmd.a_obj }
 
-    test("async", () => {
-        return args_async("hello").then(d => expect(d).toBe("hello"))
-    })
+// a3  | { reso }                     | 🔴 | N: No sub$            | None
+const cmd_r_2fn_yay = { ...cmd.r_2fn_yay }
 
-    test("work callback", done => {
-        work_primitive("earthlings")
-        done()
-        expect(work_primitive.mock.results[0].value).toBe("hello earthlings")
-    })
-})
+// a4  | { erro }                     | 🔴 | N: No sub$            | None
+const cmd_e_3fn_err = { ...cmd.e_3fn_err }
+
+// a5  | { sub$, reso }               | 🔴 | N: No args            | Noop
+// c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
+// d2  | {*}                          | b2 | b2                    | b2
+const cmd_s_r_2fn_yay = {
+    ...cmd.r_2fn_yay,
+    [CMD_SUB$] : "cmd_s_r_2fn_yay"
+}
+
+// a6  | { sub$, erro }               | 🔴 | N: No args            | Noop
+// e4  | (acc, err, out$) =>          | 💚 | No                    | A = erro(acc, err, out$)
+const cmd_s_e_3fn_err = { ...cmd.e_3fn_err, [CMD_SUB$]: "cmd_s_e_3fn_err" }
+
+// a7  | { sub$, args }               | 💚 | Y:                    | Static data: See [b1, b2, b4]
+// b0  | null                         | 🔴 | No                    | reset??
+const cmd_s_a_null = { ...cmd.a_null, [CMD_SUB$]: "cmd_s_a_null" }
+
+// a7  | { sub$, args }               | 💚 | Y:                    | Static data: See [b1, b2, b4]
+// b1  | 2                            | 🔴 | No                    | NA
+const cmd_s_a_prim = { ...cmd.a_prim, [CMD_SUB$]: "cmd_s_a_prim" }
+
+// a7  | { sub$, args }               | 💚 | Y:                    | Static data: See [b1, b2, b4]
+// b2  | {*}                          | 💚 | No                    | A = {...A, ...args }
+const cmd_s_a_obj = { ...cmd.a_obj, [CMD_SUB$]: "cmd_s_a_obj" }
+
+// a7  | { sub$, args }               | 💚 | Y:                    | Static data: See [b1, b2, b4]
+// b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
+// d1  | 2                            | b1 | b1                    | b1
+const cmd_s_a_P2prim = { ...cmd.a_P2prim, [CMD_SUB$]: "cmd_s_a_P2prim" }
+
+// a7  | { sub$, args }               | 💚 | Y:                    | Static data: See [b1, b2, b4]
+// b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
+// d2  | {*}                          | b2 | b2                    | b2
+const cmd_s_a_P2obj = { ...cmd.a_P2obj, [CMD_SUB$]: "cmd_s_a_P2obj" }
+
+// a7  | { sub$, args }               | 💚 | Y:                    | Static data: See [b1, b2, b4]
+// d4  | {E}                          | 🔴 | No                    | default: null out
+const cmd_s_a_P2error = { ...cmd.a_P2error, [CMD_SUB$]: "cmd_s_a_P2error" }
+
+// a7  | { sub$, args }               | 💚 | Y:                    | Static data: See [b1, b2, b4]
+// b5  | async (acc) => await         | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+const cmd_s_a_async = { ...cmd.a_async, [CMD_SUB$]: "cmd_s_a_async" }
+
+// a7  | { sub$, args }               | 💚 | Y:                    | Static data: See [b1, b2, b4]
+// b6  | () =>                        | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
+// b1  | 2                            | 🔴 | No                    | NA
+const cmd_s_a_0fn2P_2pri = { ...cmd.a_0fn2P_2pri, [CMD_SUB$]: "cmd_s_a_0fn2P_2pri" }
+
+// a7  | { sub$, args }               | 💚 | Y:                    | Static data: See [b1, b2, b4]
+// b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
+// b2  | {*}                          | 💚 | No                    | A = {...A, ...args }
+const cmd_s_a_1fn2P_2obj = { ...cmd.a_1fn2P_2obj, [CMD_SUB$]: "cmd_s_a_1fn2P_2obj" }
+
+// a7  | { sub$, args }               | 💚 | Y:                    | Static data: See [b1, b2, b4]
+// b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// d3  | {P}                          | b3 | b3                    | b3
+// d4  | {E}                          | 🔴 | No                    | default: null out
+const cmd_s_a_1fn2P_boo = { ...cmd.a_1fn2P_boo, [CMD_SUB$]: "cmd_s_a_1fn2P_boo" }
+
+// a8  | { args, reso }               | 💛 | N: No sub$            | data acq. only see [b]
+// b6  | () =>                        | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// d3  | {P}                          | b3 | b3                    | b3
+// c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
+// d2  | {*}                          | b2 | b2                    | b2
+const cmd_a_0fn2P_2pri_r_2fn_yay = { ...cmd.r_2fn_yay, ...cmd.a_0fn2P_2pri }
+
+// a8  | { args, reso }               | 💛 | N: No sub$            | data acq. only see [b]
+// b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// d3  | {P}                          | b3 | b3                    | b3
+// c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
+// d2  | {*}                          | b2 | b2                    | b2
+const cmd_a_1fn2P_2obj_r_2fn_yay = { ...cmd.r_2fn_yay, ...cmd.a_1fn2P_2obj }
+
+// a8  | { args, reso }               | 💛 | N: No sub$            | data acq. only see [b]
+// b2  | {*}                          | 💚 | No                    | A = {...A, ...args }
+// c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
+// d2  | {*}                          | b2 | b2                    | b2
+const cmd_a_obj_r_2fn_yay = { ...cmd.r_2fn_yay, ...cmd.a_obj }
+
+// a9  | { args, erro }               | 💛 | N: No sub$            | erro only for reso? 🤔
+// b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// d3  | {P}                          | b3 | b3                    | b3
+// d4  | {E}                          | 🔴 | No                    | default: null out
+// e4  | (acc, err, out$) =>          | 💚 | No                    | A = erro(acc, err, out$)
+const cmd_a_1fn2P_boo_e_3fn_err = { ...cmd.e_3fn_err, ...cmd.a_1fn2P_boo }
+
+// a10 | { reso, erro }               | 🔴 | N: No sub$            | NoOp: no args
+const cmd_r_2fn_yay_e_3fn_err = { ...cmd.e_3fn_err, ...cmd.r_2fn_yay }
+// a11 | { sub$, args, reso }         | 💚 | Y: resolved Promise   | { ...A, ...await reso(await args) }
+// b6  | () =>                        | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
+// c1  | 2                            | 🔴 | No                    | reset??
+// c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
+// d2  | {*}                          | b2 | b2                    | b2
+const cmd_s_a_0fn2P_2pri_r_2fn_yay = {
+    ...cmd.r_2fn_yay,
+    ...cmd.a_0fn2P_2pri,
+    [CMD_SUB$] : "cmd_s_a_0fn2P_2pri_r_2fn_yay"
+}
+
+// a11 | { sub$, args, reso }         | 💚 | Y: resolved Promise   | { ...A, ...await reso(await args) }
+// b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
+// d2  | {*}                          | b2 | b2                    | b2
+// c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
+// d2  | {*}                          | b2 | b2                    | b2
+const cmd_s_a_1fn2P_2obj_r_2fn_yay = {
+    ...cmd.r_2fn_yay,
+    ...cmd.a_1fn2P_2obj,
+    [CMD_SUB$] : "cmd_s_a_1fn2P_2obj_r_2fn_yay"
+}
+
+// No error handler for error, reso not called
+// a11 | { sub$, args, reso }         | 💚 | Y: resolved Promise   | { ...A, ...await reso(await args) }
+// b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
+// d4  | {E}                          | 🔴 | No                    | default: null out
+// c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
+const cmd_s_a_1fn2P_boo_r_2fn_yay = { ...cmd.r_2fn_yay, ...cmd.a_1fn2P_boo, [CMD_SUB$]: "cmd_s_a_1fn2P_boo_r_2fn_yay" }
+
+// a12 | { sub$, args, erro }         | 💛 | Y:                    | Yes, but no Promises
+// b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
+// d4  | {E}                          | 🔴 | No                    | default: null out
+// e4  | (acc, err, out$) =>          | 💚 | No                    | A = erro(acc, err, out$)
+const cmd_s_a_1fn2P_boo_e_3fn_err = { ...cmd.e_3fn_err, ...cmd.a_1fn2P_boo, [CMD_SUB$]: "cmd_s_a_1fn2P_boo_e_3fn_err" }
+
+// a13 | { sub$, reso, erro }         | 🔴 | N: No args            | Noop
+// c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
+// e4  | (acc, err, out$) =>          | 💚 | No                    | A = erro(acc, err, out$)
+const cmd_s_r_2fn_yay_e_3fn_err = {
+    ...cmd.e_3fn_err,
+    ...cmd.r_2fn_yay,
+    [CMD_SUB$] : "cmd_s_r_2fn_yay_e_3fn_err"
+}
+
+// a14 | { args, reso, erro }         | 💛 | N: No sub$            | xformed by reso ->...res
+// b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
+// d4  | {E}                          | 🔴 | No                    | default: null out
+// e4  | (acc, err, out$) =>          | 💚 | No                    | A = erro(acc, err, out$)
+const cmd_a_1fn2P_boo_r_2fn_yay_e_3fn_err = {
+    ...cmd.e_3fn_err,
+    ...cmd.r_2fn_yay,
+    ...cmd.a_1fn2P_boo
+}
+
+// a14 | { args, reso, erro }         | 💛 | N: No sub$            | xformed by reso ->...res
+// b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
+// b2  | {*}                          | 💚 | No                    | A = {...A, ...args }
+// c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
+// e4  | (acc, err, out$) =>          | 💚 | No                    | A = erro(acc, err, out$)
+const cmd_a_1fn2P_2obj_r_2fn_yay_e_3fn_err = {
+    ...cmd.e_3fn_err,
+    ...cmd.r_2fn_yay,
+    ...cmd.a_1fn2P_2obj
+}
+
+// a15 | { sub$, args, reso, erro }   | 💚 | Y: resolved Promise   | xformed by reso ->...res
+// b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
+// d4  | {E}                          | 🔴 | No                    | default: null out
+// c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
+// e4  | (acc, err, out$) =>          | 💚 | No                    | A = erro(acc, err, out$)
+const cmd_s_a_1fn2P_boo_r_2fn_yay_e_3fn_err = {
+    ...cmd.e_3fn_err,
+    ...cmd.r_2fn_yay,
+    ...cmd.a_1fn2P_boo,
+    [CMD_SUB$] : "cmd_s_a_1fn2P_boo_r_2fn_yay_e_3fn_err"
+}
+
+// a15 | { sub$, args, reso, erro }   | 💚 | Y: resolved Promise   | xformed by reso ->...res
+// b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
+// b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
+// d2  | {*}                          | b2 | b2                    | b2
+// c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
+// e4  | (acc, err, out$) =>          | 💚 | No                    | A = erro(acc, err, out$)
+const cmd_s_a_P2obj_r_2fn_yay_e_3fn_err = {
+    ...cmd.e_3fn_err,
+    ...cmd.r_2fn_yay,
+    ...cmd.a_P2obj,
+    [CMD_SUB$] : "cmd_s_a_P2obj_r_2fn_yay_e_3fn_err"
+}
 
 /** 
  * Consider instead of thunk being ad-hoc stream:
@@ -111,10 +292,21 @@ describe("fixtures", () => {
  *     ad-hoc stream 
  */
 
-//const cmd_prim = { [CMD_SUB$]: sub$_id + "prim", [CMD_ARGS]: args_prim }
-//const cmd_obj = { [CMD_SUB$]: sub$_id + "obj", [CMD_ARGS]: args_obj }
-//const cmd_fn_0_prim = { [CMD_SUB$]: sub$_id + "nullary", [CMD_ARGS]: args_fn_0_prim }
+describe(`multiplex doesn't dispatch Commands without ${CMD_ARGS}`, () => {
+    const O$ = stream()
+    const fn = jest.fn(x => ({ tested: x[CMD_SUB$] }))
+    O$.subscribe(map(fn))
+    const primed = multiplex(O$)
+    primed([ cmd_s ])
+    primed([ cmd_a_null ])
 
+    test(`{ ${CMD_SUB$} }`, () => {
+        expect(fn.mock.results[0].value).toMatchObject({ test: "bloop" })
+    })
+    test(`{ ${CMD_SUB$} }`, () => {
+        expect(fn.mock.results[1].value).toMatchObject({ test: "bloop" })
+    })
+})
 //const mock_fn = jest.fn(x => x + "holio")
 //const analytics$ = stream()
 //analytics$.subscribe(map(mock_fn))

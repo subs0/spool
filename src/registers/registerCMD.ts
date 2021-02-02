@@ -46,6 +46,17 @@ export const supplement$CMD: any = (cmd: Command, downstream: ISubscribable<any>
 
 const err_str = "command Registration `registerCMD`"
 
+const no_work_or_src_error = `
+Error registering ${CMD_SUB$}:
+Commands with no \`${CMD_WORK}\` & no \`${CMD_SRC$}\` handler 
+can/need not be registered:
+
+- \`${CMD_WORK}\`: registers side-effecting handlers
+- \`${CMD_SRC$}\`: registers upstream Command producers
+
+if your Command is for data acquisition/transformation, 
+you can run$.next(YOUR_COMMAND) without registration.
+`
 /**
  *
  *
@@ -81,6 +92,10 @@ export const registerCMD = (command: Command = null) => {
     const reso = command[CMD_RESO]
     const src$ = command[CMD_SRC$]
     const work = command[CMD_WORK]
+
+    if (!work && !src$) {
+        throw new Error(no_work_or_src_error)
+    }
 
     const knowns = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK ]
     const [ unknowns ] = diff_keys(knowns, command)
@@ -119,8 +134,8 @@ export const registerCMD = (command: Command = null) => {
                 return work(x) // execute side-effects, etc.
             },
             error: console.warn
-        },
-        map(puck => puck[CMD_ARGS])
+        }, // pluck the args from the incoming Command
+        map(x => x[CMD_ARGS])
     )
 
     return CMD
