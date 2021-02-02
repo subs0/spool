@@ -22,8 +22,10 @@
     "**/*.test.js",
     "**/*.repl.ts",
     "**/*.repl.js",
-    "node_modules",
+    "**/node_modules",
+    "**/lib",
+    "**/@-0",
     "lib",
-    "src/misc"
+    "src/spool/src/misc"
   ]
 }
