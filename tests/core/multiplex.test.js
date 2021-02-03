@@ -295,35 +295,55 @@ const cmd_s_a_P2obj_r_2fn_yay_e_3fn_err = {
 
 // prettier-ignore
 describe("pattern_keys", () => {
-    test(`{ } => "NO_ARGS"`,                                                 () => expect(keys_match({}))                                   .toBe("NO_ARGS"))
-    test(`{ ${CMD_SUB$} } => "NO_ARGS"`,                                     () => expect(keys_match(cmd_s))                                .toBe("NO_ARGS"))
-    test(`{ ${CMD_RESO} } => "NO_ARGS"`,                                     () => expect(keys_match(cmd_r_2fn_yay))                        .toBe("NO_ARGS"))
-    test(`{ ${CMD_ERRO} } => "NO_ARGS"`,                                     () => expect(keys_match(cmd_e_3fn_err))                        .toBe("NO_ARGS"))
-    test(`{ ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_null))                           .toBe("A"))
-    test(`{ ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_obj))                            .toBe("A"))
-    test(`{ ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_prim))                           .toBe("A"))
-    test(`{ ${CMD_SUB$}, ${CMD_RESO} } => "NO_ARGS"`,                        () => expect(keys_match(cmd_s_r_2fn_yay))                      .toBe("NO_ARGS"))
-    test(`{ ${CMD_SUB$}, ${CMD_ERRO} } => "NO_ARGS"`,                        () => expect(keys_match(cmd_s_e_3fn_err))                      .toBe("NO_ARGS"))
-    test(`{ ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,                        () => expect(keys_match(cmd_r_2fn_yay_e_3fn_err))              .toBe("NO_ARGS"))
-    test(`{ ${CMD_SUB$}, ${CMD_ARGS} } => "SA"`,                             () => expect(keys_match(cmd_s_a_0fn2P_2pri))                   .toBe("SA"))
-    test(`{ ${CMD_SUB$}, ${CMD_ARGS} } => "SA"`,                             () => expect(keys_match(cmd_s_a_1fn2P_2obj))                   .toBe("SA"))
-    test(`{ ${CMD_SUB$}, ${CMD_ARGS} } => "SA"`,                             () => expect(keys_match(cmd_s_a_1fn2P_boo))                    .toBe("SA"))
-    test(`{ ${CMD_ARGS}, ${CMD_ERRO} } => "AE"`,                             () => expect(keys_match(cmd_a_1fn2P_boo_e_3fn_err))            .toBe("AE"))
-    test(`{ ${CMD_ARGS}, ${CMD_RESO} } => "AR"`,                             () => expect(keys_match(cmd_a_0fn2P_2pri_r_2fn_yay))           .toBe("AR"))
-    test(`{ ${CMD_ARGS}, ${CMD_RESO} } => "AR"`,                             () => expect(keys_match(cmd_a_1fn2P_2obj_r_2fn_yay))           .toBe("AR"))
-    test(`{ ${CMD_SUB$}, ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,           () => expect(keys_match(cmd_s_r_2fn_yay_e_3fn_err))            .toBe("NO_ARGS"))
-    test(`{ ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_ERRO} } => "SAE"`,               () => expect(keys_match(cmd_s_a_1fn2P_boo_e_3fn_err))          .toBe("SAE"))
-    test(`{ ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "SAR"`,               () => expect(keys_match(cmd_s_a_1fn2P_boo_r_2fn_yay))          .toBe("SAR"))
-    test(`{ ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "SAR"`,               () => expect(keys_match(cmd_s_a_0fn2P_2pri_r_2fn_yay))         .toBe("SAR"))
-    test(`{ ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "SAR"`,               () => expect(keys_match(cmd_s_a_1fn2P_2obj_r_2fn_yay))         .toBe("SAR"))
-    test(`{ ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "ARE"`,               () => expect(keys_match(cmd_a_1fn2P_boo_r_2fn_yay_e_3fn_err))  .toBe("ARE"))
-    test(`{ ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "ARE"`,               () => expect(keys_match(cmd_a_1fn2P_2obj_r_2fn_yay_e_3fn_err)) .toBe("ARE"))
-    test(`{ ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "SARE"`, () => expect(keys_match(cmd_s_a_P2obj_r_2fn_yay_e_3fn_err))    .toBe("SARE"))
-    test(`{ ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "SARE"`, () => expect(keys_match(cmd_s_a_1fn2P_boo_r_2fn_yay_e_3fn_err)).toBe("SARE"))
+    test(`1 : { } => "NO_ARGS"`,                                                 () => expect(keys_match({}))                                   .toBe("NO_ARGS"))
+    test(`2 : { ${CMD_SUB$} } => "NO_ARGS"`,                                     () => expect(keys_match(cmd_s))                                .toBe("NO_ARGS"))
+    test(`3 : { ${CMD_RESO} } => "NO_ARGS"`,                                     () => expect(keys_match(cmd_r_2fn_yay))                        .toBe("NO_ARGS"))
+    test(`4 : { ${CMD_ERRO} } => "NO_ARGS"`,                                     () => expect(keys_match(cmd_e_3fn_err))                        .toBe("NO_ARGS"))
+    test(`5 : { ${CMD_SUB$}, ${CMD_RESO} } => "NO_ARGS"`,                        () => expect(keys_match(cmd_s_r_2fn_yay))                      .toBe("NO_ARGS"))
+    test(`6 : { ${CMD_SUB$}, ${CMD_ERRO} } => "NO_ARGS"`,                        () => expect(keys_match(cmd_s_e_3fn_err))                      .toBe("NO_ARGS"))
+    test(`7 : { ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,                        () => expect(keys_match(cmd_r_2fn_yay_e_3fn_err))              .toBe("NO_ARGS"))
+    test(`8 : { ${CMD_SUB$}, ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,           () => expect(keys_match(cmd_s_r_2fn_yay_e_3fn_err))            .toBe("NO_ARGS"))
+    test(`9 : { ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_null))                           .toBe("A"))
+    test(`10: { ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_obj))                            .toBe("A"))
+    test(`11: { ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_prim))                           .toBe("A"))
+    test(`12: { ${CMD_SUB$}, ${CMD_ARGS} } => "AS"`,                             () => expect(keys_match(cmd_s_a_0fn2P_2pri))                   .toBe("AS"))
+    test(`13: { ${CMD_SUB$}, ${CMD_ARGS} } => "AS"`,                             () => expect(keys_match(cmd_s_a_1fn2P_2obj))                   .toBe("AS"))
+    test(`14: { ${CMD_SUB$}, ${CMD_ARGS} } => "AS"`,                             () => expect(keys_match(cmd_s_a_1fn2P_boo))                    .toBe("AS"))
+    test(`15: { ${CMD_ARGS}, ${CMD_ERRO} } => "AE"`,                             () => expect(keys_match(cmd_a_1fn2P_boo_e_3fn_err))            .toBe("AE"))
+    test(`16: { ${CMD_ARGS}, ${CMD_RESO} } => "AR"`,                             () => expect(keys_match(cmd_a_0fn2P_2pri_r_2fn_yay))           .toBe("AR"))
+    test(`17: { ${CMD_ARGS}, ${CMD_RESO} } => "AR"`,                             () => expect(keys_match(cmd_a_1fn2P_2obj_r_2fn_yay))           .toBe("AR"))
+    test(`18: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_ERRO} } => "AES"`,               () => expect(keys_match(cmd_s_a_1fn2P_boo_e_3fn_err))          .toBe("AES"))
+    test(`19: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "ARS"`,               () => expect(keys_match(cmd_s_a_1fn2P_boo_r_2fn_yay))          .toBe("ARS"))
+    test(`20: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "ARS"`,               () => expect(keys_match(cmd_s_a_0fn2P_2pri_r_2fn_yay))         .toBe("ARS"))
+    test(`21: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "ARS"`,               () => expect(keys_match(cmd_s_a_1fn2P_2obj_r_2fn_yay))         .toBe("ARS"))
+    test(`22: { ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AER"`,               () => expect(keys_match(cmd_a_1fn2P_boo_r_2fn_yay_e_3fn_err))  .toBe("AER"))
+    test(`23: { ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AER"`,               () => expect(keys_match(cmd_a_1fn2P_2obj_r_2fn_yay_e_3fn_err)) .toBe("AER"))
+    test(`24: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AERS"`, () => expect(keys_match(cmd_s_a_P2obj_r_2fn_yay_e_3fn_err))    .toBe("AERS"))
+    test(`25: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AERS"`, () => expect(keys_match(cmd_s_a_1fn2P_boo_r_2fn_yay_e_3fn_err)).toBe("AERS"))
 })
 
 describe("process_args", () => {
-    test(`bloop`)
+    test(`Objects`, async () =>
+        expect(await process_args({}, { mad: "world" })).toMatchObject({ args_type: "OBJECT", args: { mad: "world" } }))
+    test(`Error Objects`, async () =>
+        expect(await process_args({}, new Error("shoot"))).toMatchObject({ args_type: "OBJECT", args: Error("shoot") }))
+    test(`Arrays`, async () =>
+        expect(await process_args({}, [ "a", "b" ])).toMatchObject({ args_type: "ARRAY", args: [ "a", "b" ] }))
+    test(`new Promises`, async () =>
+        expect(await process_args({}, new Promise(res => res(true)))).toBe({ args_type: "PRIMITIVE", args: true }))
+    test(`Promises`, async () => expect(await process_args({}, Promise.resolve(true))).toBe(true))
+    test(`Unary Functions`, async () =>
+        expect(await process_args({ a: 1 }, ({ a }) => ({ a: a + 1 }))).toMatchObject({
+            args_type : "OBJECT",
+            args      : { a: 2 }
+        }))
+    test(`Nullary Function`, async () =>
+        expect(await process_args({}, () => ({ a: 1 }))).toMatchObject({ args_type: "OBJECT", args: { a: 1 } }))
+    test(`a => Promises`, async () =>
+        expect(await process_args({ a: "to" }, ({ a }) => new Promise(r => r(a + "do")))).toMatchObject({
+            args_type: "PRIMITIVE",
+            args: "todo"
+        }))
 })
 
 //describe(`multiplex doesn't dispatch Commands without ${CMD_ARGS}`, () => {

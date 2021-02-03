@@ -67,8 +67,8 @@ export const keys_match = C => new EquivMap([
     [ [ CMD_ARGS, CMD_ERRO ],                     "AE" ],
     [ [ CMD_ARGS, CMD_RESO ],                     "AR" ],
     [ [ CMD_ARGS, CMD_SUB$ ],                     "AS" ],
-    [ [ CMD_ARGS, CMD_ERRO, CMD_SUB$ ],           "AER" ],
-    [ [ CMD_ARGS, CMD_ERRO, CMD_RESO ],           "AES" ],
+    [ [ CMD_ARGS, CMD_ERRO, CMD_SUB$ ],           "AES" ],
+    [ [ CMD_ARGS, CMD_ERRO, CMD_RESO ],           "AER" ],
     [ [ CMD_ARGS, CMD_RESO, CMD_SUB$ ],           "ARS" ],
     [ [ CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SUB$ ], "AERS" ]
 ]).get(Object.keys(C).sort()) || "UNKNOWN"
@@ -77,11 +77,13 @@ export const keys_match = C => new EquivMap([
 export const process_args = async (acc, args) => {
     const args_type = stringify_type(args)
 
+    log({ args_type })
+
     switch (args_type) {
         case "PRIMITIVE":
-        case "OBJECT":
+        case "OBJECT": // Errors also come back as OBJECT
         case "ARRAY":
-            return args
+            return { args_type, args }
         case "UNARY":
             return await process_args(acc, args(acc))
         case "PROMISE":
