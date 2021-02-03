@@ -322,28 +322,32 @@ describe("pattern_keys", () => {
     test(`25: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AERS"`, () => expect(keys_match(cmd_s_a_1fn2P_boo_r_2fn_yay_e_3fn_err)).toBe("AERS"))
 })
 
+// prettier-ignore
 describe("process_args", () => {
     test(`Objects`, async () =>
-        expect(await process_args({}, { mad: "world" })).toMatchObject({ args_type: "OBJECT", args: { mad: "world" } }))
+        expect(await process_args({}, { mad: "world" }))
+            .toMatchObject({ args_type: "OBJECT", args: { mad: "world" } }))
     test(`Error Objects`, async () =>
-        expect(await process_args({}, new Error("shoot"))).toMatchObject({ args_type: "OBJECT", args: Error("shoot") }))
+        expect(await process_args({}, new Error("shoot")))
+            .toMatchObject({ args_type: "OBJECT", args: Error("shoot") }))
     test(`Arrays`, async () =>
-        expect(await process_args({}, [ "a", "b" ])).toMatchObject({ args_type: "ARRAY", args: [ "a", "b" ] }))
+        expect(await process_args({}, [ "a", "b" ]))
+            .toMatchObject({ args_type: "ARRAY", args: [ "a", "b" ] }))
     test(`new Promises`, async () =>
-        expect(await process_args({}, new Promise(res => res(true)))).toBe({ args_type: "PRIMITIVE", args: true }))
-    test(`Promises`, async () => expect(await process_args({}, Promise.resolve(true))).toBe(true))
+        expect(await process_args({}, new Promise(res => res(true))))
+            .toMatchObject({ args_type: "PRIMITIVE", args: true }))
+    test(`Promises`, async () => 
+        expect(await process_args({}, Promise.resolve(true)))
+            .toMatchObject({args_type: "PRIMITIVE", args: true }))
     test(`Unary Functions`, async () =>
-        expect(await process_args({ a: 1 }, ({ a }) => ({ a: a + 1 }))).toMatchObject({
-            args_type : "OBJECT",
-            args      : { a: 2 }
-        }))
+        expect(await process_args({ a: 1 }, ({ a }) => ({ a: a + 1 })))
+            .toMatchObject({ args_type : "OBJECT", args: { a: 2 } }))
     test(`Nullary Function`, async () =>
-        expect(await process_args({}, () => ({ a: 1 }))).toMatchObject({ args_type: "OBJECT", args: { a: 1 } }))
+        expect(await process_args({}, () => ({ a: 1 })))
+            .toMatchObject({ args_type: "OBJECT", args: { a: 1 } }))
     test(`a => Promises`, async () =>
-        expect(await process_args({ a: "to" }, ({ a }) => new Promise(r => r(a + "do")))).toMatchObject({
-            args_type: "PRIMITIVE",
-            args: "todo"
-        }))
+        expect(await process_args({ a: "to" }, ({ a }) => new Promise(r => r(a + "do"))))
+            .toMatchObject({ args_type: "PRIMITIVE", args: "todo" }))
 })
 
 //describe(`multiplex doesn't dispatch Commands without ${CMD_ARGS}`, () => {

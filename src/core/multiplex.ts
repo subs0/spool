@@ -76,9 +76,6 @@ export const keys_match = C => new EquivMap([
 // recursive function that resolves all non static values
 export const process_args = async (acc, args) => {
     const args_type = stringify_type(args)
-
-    log({ args_type })
-
     switch (args_type) {
         case "PRIMITIVE":
         case "OBJECT": // Errors also come back as OBJECT
