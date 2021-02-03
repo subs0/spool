@@ -40,11 +40,11 @@
         "@thi.ng/rstream": "^5.1.0"
     },
     "dependencies": {
-        "@-0/keys": "^0.2.86",
-        "@-0/utils": "^0.2.83"
+        "@-0/keys": "^0.2.87",
+        "@-0/utils": "^0.2.85"
     },
     "devDependencies": {
-        "@babel/plugin-transform-modules-commonjs": "^7.12.1",
+        "@babel/plugin-transform-modules-commonjs": "^7.12.13",
         "@thi.ng/arrays": "^0.10.1",
         "@thi.ng/associative": "5.0.17",
         "@thi.ng/atom": "^4.1.27",
