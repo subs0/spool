@@ -79,9 +79,7 @@ export const process_args = async (acc, args) => {
 
     switch (args_type) {
         case "PRIMITIVE":
-            return args
         case "OBJECT":
-            return args
         case "ARRAY":
             return args
         case "UNARY":
