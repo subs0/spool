@@ -5,7 +5,7 @@ import { CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SRC$, CMD_SUB$, CMD_WORK } from "@-0/
 import { stringify_type } from "@-0/utils"
 
 import { cmd, log } from "../fixtures"
-import { run$, cmd$, out$, task$, multiplex } from "../../src/core"
+import { run$, cmd$, out$, task$, multiplex, keys_match, process_args } from "../../src/core"
 import { registerCMD, log$ } from "../../src/registers"
 
 /**
@@ -184,6 +184,7 @@ const cmd_a_1fn2P_boo_e_3fn_err = { ...cmd.e_3fn_err, ...cmd.a_1fn2P_boo }
 
 // a10 | { reso, erro }               | 🔴 | N: No sub$            | NoOp: no args
 const cmd_r_2fn_yay_e_3fn_err = { ...cmd.e_3fn_err, ...cmd.r_2fn_yay }
+
 // a11 | { sub$, args, reso }         | 💚 | Y: resolved Promise   | { ...A, ...await reso(await args) }
 // b6  | () =>                        | 💛 | Y: resolved function  | A = {...A, ...args(A) }
 // b3  | {P}                          | 💚 | Y: resolved Promise   | A = {...A, ...await args }
@@ -292,21 +293,54 @@ const cmd_s_a_P2obj_r_2fn_yay_e_3fn_err = {
  *     ad-hoc stream 
  */
 
-describe(`multiplex doesn't dispatch Commands without ${CMD_ARGS}`, () => {
-    const O$ = stream()
-    const fn = jest.fn(x => ({ tested: x[CMD_SUB$] }))
-    O$.subscribe(map(fn))
-    const primed = multiplex(O$)
-    primed([ cmd_s ])
-    primed([ cmd_a_null ])
-
-    test(`{ ${CMD_SUB$} }`, () => {
-        expect(fn.mock.results[0].value).toMatchObject({ test: "bloop" })
-    })
-    test(`{ ${CMD_SUB$} }`, () => {
-        expect(fn.mock.results[1].value).toMatchObject({ test: "bloop" })
-    })
+// prettier-ignore
+describe("pattern_keys", () => {
+    test(`{ } => "NO_ARGS"`,                                                 () => expect(keys_match({}))                                   .toBe("NO_ARGS"))
+    test(`{ ${CMD_SUB$} } => "NO_ARGS"`,                                     () => expect(keys_match(cmd_s))                                .toBe("NO_ARGS"))
+    test(`{ ${CMD_RESO} } => "NO_ARGS"`,                                     () => expect(keys_match(cmd_r_2fn_yay))                        .toBe("NO_ARGS"))
+    test(`{ ${CMD_ERRO} } => "NO_ARGS"`,                                     () => expect(keys_match(cmd_e_3fn_err))                        .toBe("NO_ARGS"))
+    test(`{ ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_null))                           .toBe("A"))
+    test(`{ ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_obj))                            .toBe("A"))
+    test(`{ ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_prim))                           .toBe("A"))
+    test(`{ ${CMD_SUB$}, ${CMD_RESO} } => "NO_ARGS"`,                        () => expect(keys_match(cmd_s_r_2fn_yay))                      .toBe("NO_ARGS"))
+    test(`{ ${CMD_SUB$}, ${CMD_ERRO} } => "NO_ARGS"`,                        () => expect(keys_match(cmd_s_e_3fn_err))                      .toBe("NO_ARGS"))
+    test(`{ ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,                        () => expect(keys_match(cmd_r_2fn_yay_e_3fn_err))              .toBe("NO_ARGS"))
+    test(`{ ${CMD_SUB$}, ${CMD_ARGS} } => "SA"`,                             () => expect(keys_match(cmd_s_a_0fn2P_2pri))                   .toBe("SA"))
+    test(`{ ${CMD_SUB$}, ${CMD_ARGS} } => "SA"`,                             () => expect(keys_match(cmd_s_a_1fn2P_2obj))                   .toBe("SA"))
+    test(`{ ${CMD_SUB$}, ${CMD_ARGS} } => "SA"`,                             () => expect(keys_match(cmd_s_a_1fn2P_boo))                    .toBe("SA"))
+    test(`{ ${CMD_ARGS}, ${CMD_ERRO} } => "AE"`,                             () => expect(keys_match(cmd_a_1fn2P_boo_e_3fn_err))            .toBe("AE"))
+    test(`{ ${CMD_ARGS}, ${CMD_RESO} } => "AR"`,                             () => expect(keys_match(cmd_a_0fn2P_2pri_r_2fn_yay))           .toBe("AR"))
+    test(`{ ${CMD_ARGS}, ${CMD_RESO} } => "AR"`,                             () => expect(keys_match(cmd_a_1fn2P_2obj_r_2fn_yay))           .toBe("AR"))
+    test(`{ ${CMD_SUB$}, ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,           () => expect(keys_match(cmd_s_r_2fn_yay_e_3fn_err))            .toBe("NO_ARGS"))
+    test(`{ ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_ERRO} } => "SAE"`,               () => expect(keys_match(cmd_s_a_1fn2P_boo_e_3fn_err))          .toBe("SAE"))
+    test(`{ ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "SAR"`,               () => expect(keys_match(cmd_s_a_1fn2P_boo_r_2fn_yay))          .toBe("SAR"))
+    test(`{ ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "SAR"`,               () => expect(keys_match(cmd_s_a_0fn2P_2pri_r_2fn_yay))         .toBe("SAR"))
+    test(`{ ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "SAR"`,               () => expect(keys_match(cmd_s_a_1fn2P_2obj_r_2fn_yay))         .toBe("SAR"))
+    test(`{ ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "ARE"`,               () => expect(keys_match(cmd_a_1fn2P_boo_r_2fn_yay_e_3fn_err))  .toBe("ARE"))
+    test(`{ ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "ARE"`,               () => expect(keys_match(cmd_a_1fn2P_2obj_r_2fn_yay_e_3fn_err)) .toBe("ARE"))
+    test(`{ ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "SARE"`, () => expect(keys_match(cmd_s_a_P2obj_r_2fn_yay_e_3fn_err))    .toBe("SARE"))
+    test(`{ ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "SARE"`, () => expect(keys_match(cmd_s_a_1fn2P_boo_r_2fn_yay_e_3fn_err)).toBe("SARE"))
 })
+
+describe("process_args", () => {
+    test(`bloop`)
+})
+
+//describe(`multiplex doesn't dispatch Commands without ${CMD_ARGS}`, () => {
+//    const O$ = stream()
+//    const fn = jest.fn(x => ({ tested: x[CMD_SUB$] }))
+//    O$.subscribe(map(fn))
+
+//    const primed = multiplex(O$)
+//    const Task = [ cmd_s, cmd_r_2fn_yay, cmd_e_3fn_err, cmd_s_r_2fn_yay, cmd_s_e_3fn_err, cmd_r_2fn_yay_e_3fn_err ]
+
+//    primed(Task)
+//    test(`Task`, async () => {
+//        log({ results: fn.mock.results })
+//        expect(fn.mock.results.map((x, i) => ({ ["result_" + i]: x.value }))).toBe(undefined)
+//    })
+//})
+
 //const mock_fn = jest.fn(x => x + "holio")
 //const analytics$ = stream()
 //analytics$.subscribe(map(mock_fn))

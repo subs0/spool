@@ -4,36 +4,98 @@
 
 import { isFunction, isPromise, isArray } from "@thi.ng/checks"
 import { pubsub, Subscription, PubSub } from "@thi.ng/rstream"
+import { EquivMap } from "@thi.ng/associative"
 
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK } from "@-0/keys"
-import { stringify_type, xKeyError, key_index_err, diff_keys } from "@-0/utils"
+import { stringify_type, xKeyError, key_index_err, diff_keys, stringify_fn } from "@-0/utils"
 import { getIn } from "@thi.ng/paths"
 
 const log = console.log
 
-const err_str = "Spooling Interupted" // <- TODO: add doc link to error strings
+const err_str = "🔥 Multiplex Spooling Interrupted 🔥"
 
 const nosub$_err = (c, i) =>
     console.warn(`
-🔥 No sub$ included for a Command with a primitive for 'args'. 
+${err_str}
+
+ >> No \`${CMD_SUB$}\` included for a Command with primitive \`${CMD_ARGS}\` <<
 
 Ergo, nothing was done with this Command: 
 
-${JSON.stringify(c)}
+${stringify_fn(c)}
 
 ${key_index_err(c, i)}
 
 Hope that helps!
+
 `)
 
 const task_not_array_error = x => `
-You may have either:
-1. Tried to run a Command that has no \`${CMD_ARGS}\` key (and thus does nothing)
-2. Tried to run a Sub/Task that is not in [] (Array) form
+${err_str}
+
+You may have:
+1. Ran a Command that has no \`${CMD_ARGS}\` key and thus does nothing
+2. Ran a Subtask - a unary Function that accepts an inter-Task accumulator 
+    and returns an Array - outside of a Task and has thus starved
 
 Please check this payload for issues:
-${JSON.stringify(x)}
+${stringify_fn(x)}
 `
+
+const no_args_error = (C, i) => `
+${err_str}
+
+You have ran a Command that has no \`${CMD_ARGS}\` key and thus does nothing
+
+Please check this payload for issues:
+${stringify_fn(C)}
+
+//${key_index_err(C, i)}
+`
+
+// prettier-ignore
+export const keys_match = C => new EquivMap([
+    [ [],                                         "NO_ARGS" ],
+    [ [ CMD_SUB$ ],                               "NO_ARGS" ],
+    [ [ CMD_RESO ],                               "NO_ARGS" ],
+    [ [ CMD_ERRO ],                               "NO_ARGS" ],
+    [ [ CMD_RESO, CMD_SUB$ ],                     "NO_ARGS" ],
+    [ [ CMD_ERRO, CMD_SUB$ ],                     "NO_ARGS" ],
+    [ [ CMD_ERRO, CMD_RESO ],                     "NO_ARGS" ],
+    [ [ CMD_ERRO, CMD_RESO, CMD_SUB$ ],           "NO_ARGS" ],
+    [ [ CMD_ARGS ],                               "A" ],
+    [ [ CMD_ARGS, CMD_ERRO ],                     "AE" ],
+    [ [ CMD_ARGS, CMD_RESO ],                     "AR" ],
+    [ [ CMD_ARGS, CMD_SUB$ ],                     "AS" ],
+    [ [ CMD_ARGS, CMD_ERRO, CMD_SUB$ ],           "AER" ],
+    [ [ CMD_ARGS, CMD_ERRO, CMD_RESO ],           "AES" ],
+    [ [ CMD_ARGS, CMD_RESO, CMD_SUB$ ],           "ARS" ],
+    [ [ CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SUB$ ], "AERS" ]
+]).get(Object.keys(C).sort()) || "UNKNOWN"
+
+// recursive function that resolves all non static values
+export const process_args = async (acc, args) => {
+    const args_type = stringify_type(args)
+
+    switch (args_type) {
+        case "PRIMITIVE":
+            return args
+        case "OBJECT":
+            return args
+        case "ARRAY":
+            return args
+        case "UNARY":
+            return await process_args(acc, args(acc))
+        case "PROMISE":
+            let resolved = await args.catch(e => e)
+            return await process_args(acc, resolved)
+        case "NULLARY":
+            return await process_args(acc, args())
+        default:
+            return "UNDEFINED"
+    }
+}
+
 /**
  *
  * Handles Collections (array) of Commands ("Tasks") which
@@ -148,22 +210,32 @@ export const multiplex = out$ => task_array =>
               let acc = await a
 
               /**
-             * Support "SubTasks"
-             * let SubTaskSig = ({ inter_task_prop }) => [
-             *      { sub$: "A", args: inter_task_prop + 1 },
-             *      { sub$: "B", args: inter_task_prop + 2 }
-             * ]
-             */
+               * @example
+               * let SubTask = ({ inter_task_prop }) => [
+               *      { sub$: "A", args: inter_task_prop + 1 },
+               *      { sub$: "B", args: inter_task_prop + 2 }
+               * ]
+               */
               if (isFunction(c)) {
                   try {
-                      const recur = c(acc)
-                      // ensures accumulator is preserved between stacks
-                      recur.unshift({ [CMD_ARGS]: acc })
-                      return multiplex(out$)(recur)
+                      const queue = c(acc)
+                      // ensures accumulator is preserved
+                      // between stack calls
+                      queue.unshift({ [CMD_ARGS]: acc })
+                      // recur
+                      return multiplex(out$)(queue)
                   } catch (e) {
                       console.warn(err_str, e)
                       return
                   }
+              }
+
+              // 🧲
+              const props_type = keys_match(c)
+
+              if (props_type === "NO_ARGS") {
+                  console.warn(no_args_error(c, i))
+                  return (acc = null)
               }
 
               // grab Command props
@@ -173,10 +245,11 @@ export const multiplex = out$ => task_array =>
               const reso = c[CMD_RESO]
 
               // ensure no unknown Command props
-              const knowns = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK ]
+              const knowns = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO ]
               const [ unknowns, unknown_kvs ] = diff_keys(knowns, c)
               if (unknowns.length > 0) throw new Error(xKeyError(err_str, c, unknown_kvs, sub$, i))
 
+              // 🧲
               const arg_type = stringify_type(args)
 
               /* 👆 I: Step 1 -> resolve args to a value 👆 */
@@ -189,7 +262,7 @@ export const multiplex = out$ => task_array =>
               // useful for side-effects. I.e., no work done
 
               // CASE: ARGS = NOOP PRIMITIVE
-              if (args !== Object(args) && !sub$) {
+              if (arg_type === "PRIMITIVE" && !sub$) {
                   nosub$_err(c, i)
                   return acc
               }
