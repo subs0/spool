@@ -1,11 +1,11 @@
-import { stream } from "@thi.ng/rstream"
+import { stream, transduce } from "@thi.ng/rstream"
 import { map } from "@thi.ng/transducers"
 
 import { CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SRC$, CMD_SUB$, CMD_WORK } from "@-0/keys"
 import { stringify_type } from "@-0/utils"
 
-import { cmd, log } from "../fixtures"
-import { run$, cmd$, out$, task$, multiplex, keys_match, process_args } from "../../src/core"
+import { cmd, log, a_async, a_P } from "../fixtures"
+import { run$, cmd$, out$, task$, multiplex, keys_match, process_args, pattern_match } from "../../src/core"
 import { registerCMD, log$ } from "../../src/registers"
 
 /**
@@ -295,15 +295,15 @@ const cmd_s_a_P2obj_r_2fn_yay_e_3fn_err = {
 
 // prettier-ignore
 describe("pattern_keys", () => {
-    test(`1 : { } => "NO_ARGS"`,                                                 () => expect(keys_match({}))                                   .toBe("NO_ARGS"))
-    test(`2 : { ${CMD_SUB$} } => "NO_ARGS"`,                                     () => expect(keys_match(cmd_s))                                .toBe("NO_ARGS"))
-    test(`3 : { ${CMD_RESO} } => "NO_ARGS"`,                                     () => expect(keys_match(cmd_r_2fn_yay))                        .toBe("NO_ARGS"))
-    test(`4 : { ${CMD_ERRO} } => "NO_ARGS"`,                                     () => expect(keys_match(cmd_e_3fn_err))                        .toBe("NO_ARGS"))
-    test(`5 : { ${CMD_SUB$}, ${CMD_RESO} } => "NO_ARGS"`,                        () => expect(keys_match(cmd_s_r_2fn_yay))                      .toBe("NO_ARGS"))
-    test(`6 : { ${CMD_SUB$}, ${CMD_ERRO} } => "NO_ARGS"`,                        () => expect(keys_match(cmd_s_e_3fn_err))                      .toBe("NO_ARGS"))
-    test(`7 : { ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,                        () => expect(keys_match(cmd_r_2fn_yay_e_3fn_err))              .toBe("NO_ARGS"))
-    test(`8 : { ${CMD_SUB$}, ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,           () => expect(keys_match(cmd_s_r_2fn_yay_e_3fn_err))            .toBe("NO_ARGS"))
-    test(`9 : { ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_null))                           .toBe("A"))
+    test(`1: { } => "NO_ARGS"`,                                                  () => expect(keys_match({}))                                   .toBe("NO_ARGS"))
+    test(`2: { ${CMD_SUB$} } => "NO_ARGS"`,                                      () => expect(keys_match(cmd_s))                                .toBe("NO_ARGS"))
+    test(`3: { ${CMD_RESO} } => "NO_ARGS"`,                                      () => expect(keys_match(cmd_r_2fn_yay))                        .toBe("NO_ARGS"))
+    test(`4: { ${CMD_ERRO} } => "NO_ARGS"`,                                      () => expect(keys_match(cmd_e_3fn_err))                        .toBe("NO_ARGS"))
+    test(`5: { ${CMD_SUB$}, ${CMD_RESO} } => "NO_ARGS"`,                         () => expect(keys_match(cmd_s_r_2fn_yay))                      .toBe("NO_ARGS"))
+    test(`6: { ${CMD_SUB$}, ${CMD_ERRO} } => "NO_ARGS"`,                         () => expect(keys_match(cmd_s_e_3fn_err))                      .toBe("NO_ARGS"))
+    test(`7: { ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,                         () => expect(keys_match(cmd_r_2fn_yay_e_3fn_err))              .toBe("NO_ARGS"))
+    test(`8: { ${CMD_SUB$}, ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,            () => expect(keys_match(cmd_s_r_2fn_yay_e_3fn_err))            .toBe("NO_ARGS"))
+    test(`9: { ${CMD_ARGS} } => "A"`,                                            () => expect(keys_match(cmd_a_null))                           .toBe("A"))
     test(`10: { ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_obj))                            .toBe("A"))
     test(`11: { ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_prim))                           .toBe("A"))
     test(`12: { ${CMD_SUB$}, ${CMD_ARGS} } => "AS"`,                             () => expect(keys_match(cmd_s_a_0fn2P_2pri))                   .toBe("AS"))
@@ -322,50 +322,195 @@ describe("pattern_keys", () => {
     test(`25: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AERS"`, () => expect(keys_match(cmd_s_a_1fn2P_boo_r_2fn_yay_e_3fn_err)).toBe("AERS"))
 })
 
-// prettier-ignore
 describe("process_args", () => {
-    test(`Objects`, async () =>
-        expect(await process_args({}, { mad: "world" }))
-            .toMatchObject({ args_type: "OBJECT", args: { mad: "world" } }))
-    test(`Error Objects`, async () =>
-        expect(await process_args({}, new Error("shoot")))
-            .toMatchObject({ args_type: "OBJECT", args: Error("shoot") }))
-    test(`Arrays`, async () =>
-        expect(await process_args({}, [ "a", "b" ]))
-            .toMatchObject({ args_type: "ARRAY", args: [ "a", "b" ] }))
-    test(`new Promises`, async () =>
-        expect(await process_args({}, new Promise(res => res(true))))
-            .toMatchObject({ args_type: "PRIMITIVE", args: true }))
-    test(`Promises`, async () => 
-        expect(await process_args({}, Promise.resolve(true)))
-            .toMatchObject({args_type: "PRIMITIVE", args: true }))
-    test(`Unary Functions`, async () =>
-        expect(await process_args({ a: 1 }, ({ a }) => ({ a: a + 1 })))
-            .toMatchObject({ args_type : "OBJECT", args: { a: 2 } }))
-    test(`Nullary Function`, async () =>
-        expect(await process_args({}, () => ({ a: 1 })))
-            .toMatchObject({ args_type: "OBJECT", args: { a: 1 } }))
-    test(`a => Promises`, async () =>
-        expect(await process_args({ a: "to" }, ({ a }) => new Promise(r => r(a + "do"))))
-            .toMatchObject({ args_type: "PRIMITIVE", args: "todo" }))
+    test(`1: Objects`, async () =>
+        expect(await process_args({}, { mad: "world" })).toMatchObject({ args_type: "OBJECT", args: { mad: "world" } }))
+    test(`2: Error Objects`, async () =>
+        expect(await process_args({}, new Error("shoot"))).toMatchObject({ args_type: "ERROR", args: Error("shoot") }))
+    test(`3: Arrays`, async () =>
+        expect(await process_args({}, [ "a", "b" ])).toMatchObject({ args_type: "ARRAY", args: [ "a", "b" ] }))
+    test(`4: Promises`, async () =>
+        expect(await process_args({}, Promise.resolve(true))).toMatchObject({ args_type: "PRIMITIVE", args: true }))
+    test(`5: Nullary Function`, async () =>
+        expect(await process_args({}, () => ({ a: 1 }))).toMatchObject({ args_type: "OBJECT", args: { a: 1 } }))
+    test(`6: new Promises`, async () =>
+        expect(await process_args({}, new Promise(res => res(true)))).toMatchObject({
+            args_type : "PRIMITIVE",
+            args      : true
+        }))
+    test(`7: Unary Functions`, async () =>
+        expect(await process_args({ a: 1 }, ({ a }) => ({ a: a + 1 }))).toMatchObject({
+            args_type : "OBJECT",
+            args      : { a: 2 }
+        }))
+    test(`8: a => Promise`, async () =>
+        expect(await process_args({ a: "to" }, ({ a }) => new Promise(r => r(a + "do")))).toMatchObject({
+            args_type : "PRIMITIVE",
+            args      : "todo"
+        }))
+    test(`9: a => Object`, async () =>
+        expect(await process_args({ a: "to" }, ({ a }) => ({ a: a + "do" }))).toMatchObject({
+            args_type : "OBJECT",
+            args      : { a: "todo" }
+        }))
+    test(`10: async a => Promise => Object`, async () =>
+        expect(await process_args({ a: "to" }, a => a_async(a))).toMatchObject({
+            args_type : "OBJECT",
+            args      : { a: "to" }
+        }))
 })
 
-//describe(`multiplex doesn't dispatch Commands without ${CMD_ARGS}`, () => {
-//    const O$ = stream()
-//    const fn = jest.fn(x => ({ tested: x[CMD_SUB$] }))
-//    O$.subscribe(map(fn))
+describe(`pattern_match`, () => {
+    test(`1: Errors result in acc = null if no \`${CMD_ERRO}\` is provided`, async () => {
+        //const warned_1 = jest.fn()
+        //jest.spyOn(console, "warn").mockImplementation(warned_1)
 
-//    const primed = multiplex(O$)
-//    const Task = [ cmd_s, cmd_r_2fn_yay, cmd_e_3fn_err, cmd_s_r_2fn_yay, cmd_s_e_3fn_err, cmd_r_2fn_yay_e_3fn_err ]
+        const acc = await pattern_match({}, { [CMD_ARGS]: new Error("bloop") })
+        expect(acc).toBe(null)
+    })
+    test(`2: Promises are handled by \`${CMD_RESO}\` if provided and resulting Objects are spread with accumulator`, async () => {
+        const acc = await pattern_match({ key: "bloop" }, cmd_a_1fn2P_2obj_r_2fn_yay)
+        expect(acc).toMatchObject({ key: "bloop -> a_1fn2P_2obj -> r_2fn_yay" })
+    })
+    test(`3: Error if no \`${CMD_ARGS}\` provided`, async () => {
+        const warned_1 = jest.fn()
+        jest.spyOn(console, "warn").mockImplementation(warned_1)
 
-//    primed(Task)
-//    test(`Task`, async () => {
-//        log({ results: fn.mock.results })
-//        expect(fn.mock.results.map((x, i) => ({ ["result_" + i]: x.value }))).toBe(undefined)
-//    })
-//})
+        const acc = await pattern_match({ key: "bloop" }, cmd_r_2fn_yay)
 
-//const mock_fn = jest.fn(x => x + "holio")
+        expect(warned_1.mock.calls.length).toBe(1)
+        expect(acc).toMatchObject({ key: "bloop" })
+    })
+    test(`4: Unhandled errors null out accumulator`, async () => {
+        const warned_1 = jest.fn()
+        jest.spyOn(console, "warn").mockImplementation(warned_1)
+
+        const acc = await pattern_match({ key: "bloop" }, cmd_s_a_P2error)
+
+        expect(warned_1.mock.calls.length).toBe(1)
+        expect(acc).toBe(null)
+    })
+    test(`5: Commands with a ${CMD_SUB$} that result in a Primitive are dispatched, but don't effect accumulator`, async () => {
+        const O$ = stream()
+        const fn_1 = jest.fn(x => x)
+        O$.subscribe(map(fn_1))
+
+        const acc = await pattern_match({ key: "bloop" }, cmd_s_a_0fn2P_2pri, O$)
+
+        expect(acc).toMatchObject({ key: "bloop" })
+        expect(fn_1.mock.results[0].value).toMatchObject({ args: 2, sub$: "cmd_s_a_0fn2P_2pri" })
+    })
+    test(`x: Errors are handled if \`${CMD_ERRO}\` is provided`, async () => {
+        const warned_1 = jest.fn()
+        jest.spyOn(console, "warn").mockImplementation(warned_1)
+
+        const O$ = stream()
+        const fn_1 = jest.fn(x => x)
+        O$.subscribe(map(fn_1))
+
+        const acc = await pattern_match(
+            {},
+            { [CMD_ARGS]: new Error("bloop"), [CMD_ERRO]: (A, E, O$) => (O$.next("💩"), null) },
+            O$
+        )
+        expect(acc).toBe(null)
+        expect(fn_1.mock.results[0].value).toBe("💩")
+    })
+})
+
+describe(`multiplex`, () => {
+    test(`1: doesn't dispatch Commands without ${CMD_ARGS}`, async () => {
+        const warned_1 = jest.fn()
+        jest.spyOn(console, "warn").mockImplementation(warned_1)
+
+        const O$ = stream()
+        const fn_1 = jest.fn()
+        O$.subscribe(map(fn_1))
+
+        const spool = multiplex(O$)
+        const Task = [
+            cmd_s,
+            cmd_r_2fn_yay,
+            cmd_e_3fn_err,
+            cmd_s_r_2fn_yay,
+            cmd_s_e_3fn_err,
+            cmd_r_2fn_yay_e_3fn_err,
+            cmd_s_r_2fn_yay_e_3fn_err
+        ]
+
+        await spool(Task)
+
+        expect(fn_1.mock.results.length).toBe(0)
+        expect(warned_1.mock.calls.length).toBe(7)
+    })
+
+    test(`2: Basic accumulation with a single dispatch`, async () => {
+        const O$ = stream()
+        const fn_1 = jest.fn(x => x)
+        O$.subscribe(map(fn_1))
+
+        const spool = multiplex(O$)
+        const Task = [
+            cmd_a_obj, // { key: "lorem" }
+            cmd.a_async, // async x => await a_P(x)
+            cmd_s_a_1fn2P_2obj // A => a_P({ key: A.key + " -> a_1fn2P_2obj" }) }
+        ]
+
+        await spool(Task)
+
+        expect(fn_1.mock.results.length).toBe(1)
+        expect(fn_1.mock.results[0].value).toMatchObject({
+            args : { key: "lorem  -> a_1fn2P_2obj" },
+            sub$ : "cmd_s_a_1fn2P_2obj"
+        })
+    })
+    test(`3: Subtask with a single dispatch`, async () => {
+        const O$ = stream()
+        const fn_1 = jest.fn(x => x)
+        O$.subscribe(map(fn_1))
+        const spool = multiplex(O$)
+
+        const SUBTASK = ({ key }) => [ { [CMD_ARGS]: ({ key }) => ({ key: key + "-> SUBTASK was here!" }) } ]
+
+        const Task = [
+            cmd_a_obj, // { key: "lorem" }
+            cmd.a_async, // async x => await a_P(x)
+            SUBTASK,
+            cmd_s_a_1fn2P_2obj // A => a_P({ key: A.key + " -> a_1fn2P_2obj" }) }
+        ]
+
+        await spool(Task)
+
+        expect(fn_1.mock.results.length).toBe(1)
+        expect(fn_1.mock.results[0].value).toMatchObject({
+            args : { key: "lorem -> SUBTASK was here! -> a_1fn2P_2obj" },
+            sub$ : "cmd_s_a_1fn2P_2obj"
+        })
+    })
+    test(`4: Primitives aren't dispatched`, async () => {
+        const O$ = stream()
+        const fn_1 = jest.fn(x => x)
+        O$.subscribe(map(fn_1))
+        const spool = multiplex(O$)
+
+        const Task = [
+            cmd_a_prim, // { args: 2 } -> no dispatch
+            cmd_a_obj, // { args: { key: "lorem" } }
+            cmd.a_async, // { args: async x => await a_P(x) } -> no dispatch
+            { [CMD_SUB$]: "noop", [CMD_ARGS]: x => x }
+        ]
+
+        await spool(Task)
+
+        expect(fn_1.mock.results.length).toBe(1)
+        expect(fn_1.mock.results[0].value).toMatchObject({
+            args : { key: "lorem " }, // initial reduce(fn, {}) empty accumulator remains
+            sub$ : "noop"
+        })
+    })
+})
+
+//const mock_fn = jest.fn(x => x + "holio" )
 //const analytics$ = stream()
 //analytics$.subscribe(map(mock_fn))
 //const args_fn_0_$ = () => ({ [CMD_SUB$]: analytics$, args: "✅ test: ad-hoc stream" })

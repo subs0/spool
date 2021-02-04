@@ -1,5 +1,6 @@
 import { stream } from "@thi.ng/rstream"
 import { map } from "@thi.ng/transducers"
+import { EquivMap } from "@thi.ng/associative"
 
 import { CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SRC$, CMD_SUB$, CMD_WORK } from "@-0/keys"
 //import { run$, cmd$, out$, task$, multiplex } from "../../src/core"
@@ -35,6 +36,16 @@ import { CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SRC$, CMD_SUB$, CMD_WORK } from "@-0/
  * 2. Create a test for each.
  *
  */
+
+const error = new Error("my error")
+const result = new EquivMap([ [ error, "error" ] ]).get(error) || "NA"
+
+const operator = null && "butt"
+operator //?
+
+const bi = { a: 1 } && { b: 2 } //?
+
+"some".includes("o") //?
 
 const sub$_id = "ID_"
 const args_prim = 1

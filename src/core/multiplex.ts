@@ -10,12 +10,9 @@ import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK } from "@-0/
 import { stringify_type, xKeyError, key_index_err, diff_keys, stringify_fn } from "@-0/utils"
 import { getIn } from "@thi.ng/paths"
 
-const log = console.log
-
 const err_str = "🔥 Multiplex Spooling Interrupted 🔥"
 
-const nosub$_err = (c, i) =>
-    console.warn(`
+const noSubEr = (c, i) => `
 ${err_str}
 
  >> No \`${CMD_SUB$}\` included for a Command with primitive \`${CMD_ARGS}\` <<
@@ -24,11 +21,27 @@ Ergo, nothing was done with this Command:
 
 ${stringify_fn(c)}
 
-${key_index_err(c, i)}
+${(i && key_index_err(c, i)) || ""}
 
 Hope that helps!
 
-`)
+`
+
+const noEroEr = (c, i) => `
+${err_str}
+
+>> Unhandled Error 
+
+This Command:
+
+${stringify_fn(c)}
+
+resulted in an error, but no ${CMD_ERRO} (error) handler was included
+
+${(i && key_index_err(c, i)) || ""}
+Unhandled errors terminate Tasks by default
+
+`
 
 const task_not_array_error = x => `
 ${err_str}
@@ -42,7 +55,7 @@ Please check this payload for issues:
 ${stringify_fn(x)}
 `
 
-const no_args_error = (C, i) => `
+const no_args_error = (C, i = null) => `
 ${err_str}
 
 You have ran a Command that has no \`${CMD_ARGS}\` key and thus does nothing
@@ -50,7 +63,7 @@ You have ran a Command that has no \`${CMD_ARGS}\` key and thus does nothing
 Please check this payload for issues:
 ${stringify_fn(C)}
 
-//${key_index_err(C, i)}
+${i ? key_index_err(C, i) : ""}
 `
 
 // prettier-ignore
@@ -73,14 +86,15 @@ export const keys_match = C => new EquivMap([
     [ [ CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SUB$ ], "AERS" ]
 ]).get(Object.keys(C).sort()) || "UNKNOWN"
 
+// prettier-ignore
 // recursive function that resolves all non static values
 export const process_args = async (acc, args) => {
     const args_type = stringify_type(args)
     switch (args_type) {
-        case "PRIMITIVE":
-        case "OBJECT": // Errors also come back as OBJECT
-        case "ARRAY":
+        case "PRIMITIVE": case "OBJECT": case "ERROR": case "ARRAY":
             return { args_type, args }
+        case "N-ARY": case "BINARY":
+            console.warn(`${CMD_ARGS} function arity > 1: ${stringify_fn(args)}`)
         case "UNARY":
             return await process_args(acc, args(acc))
         case "PROMISE":
@@ -91,6 +105,55 @@ export const process_args = async (acc, args) => {
         default:
             return "UNDEFINED"
     }
+}
+
+// prettier-ignore
+/**
+ * @example
+ * acc = await pattern_match(acc, { args: { a: 1 } }, out$)
+ */
+export const pattern_match = async (acc, C, out$ = { next: null }, i = null) => {
+    if (acc === null) return null
+    const K_M = keys_match(C)
+    if (K_M === "NO_ARGS") {
+        console.warn(no_args_error(C, i))
+        return acc
+    }
+
+
+    const _args = C[CMD_ARGS]
+    const { args_type, args } = await process_args(acc, _args)
+
+    //log(`
+    //K_M: ${K_M}
+    //args_type: ${args_type}
+    //args: ${args}
+    //`)
+
+    const __R = K_M.includes("R") && C[CMD_RESO](acc, args) 
+    const __C = { ...C, [CMD_ARGS]: args }
+    const __A = args_type === "OBJECT" && { ...acc, ...args }
+    const __RA = __R && { ...acc, ...__R }
+
+    // equivalent matches are returned in LIFO order -> add least least restrictive cases first ⬇
+    let result = new EquivMap([ 
+        [ { K_M,                                 args_type: "OBJECT"    },() => __A ],
+        [ { K_M: "AE",                           args_type: "OBJECT"    },() => __A ],
+        // if primitive and no topic key -> warn and return acc
+        [ { K_M: `${!K_M.includes("S") && K_M}`, args_type: "PRIMITIVE" },() => (console.warn(noSubEr(__C, i)), acc) ],
+        [ { K_M: `${K_M.includes("S") && K_M}`,  args_type: "PRIMITIVE" },() => (out$.next(__C), acc) ],
+        [ { K_M: `${K_M.includes("S") && K_M}`,  args_type: "OBJECT"    },() => (out$.next(__C), __A) ],
+        // whatever args type (sans errors), if resolver, let that handle the result
+        [ { K_M: `${K_M.includes("R") && K_M}`,  args_type              },() => __RA ],
+        // ditto + if topic subscriber, send it downstream
+        [ { K_M: `${K_M.includes("RS") && K_M}`, args_type              },() => (out$.next(__R), __RA) ],
+        // isn't triggered if an error handler is included
+        [ { K_M,                                 args_type: "ERROR"     },() => (console.warn(noEroEr(__C, i)), null) ],
+        // if ERROR and handler -> handle error
+        [ { K_M: `${K_M.includes("E") && K_M}`,  args_type: "ERROR"     },() => C[CMD_ERRO](acc, args, out$) ]
+    ]).get({ K_M, args_type }) || null
+
+    return result && result()
 }
 
 /**
@@ -227,6 +290,8 @@ export const multiplex = out$ => task_array =>
                   }
               }
 
+              //  return await pattern_match(acc, c, out$, i)
+
               // 🧲
               const props_type = keys_match(c)
 
@@ -260,7 +325,7 @@ export const multiplex = out$ => task_array =>
 
               // CASE: ARGS = NOOP PRIMITIVE
               if (arg_type === "PRIMITIVE" && !sub$) {
-                  nosub$_err(c, i)
+                  console.warn(noSubEr(c, i))
                   return acc
               }
               // if object (static), send the Command as-is and spread into
@@ -274,14 +339,14 @@ export const multiplex = out$ => task_array =>
               }
 
               /**
-                 * Support ad-hoc stream dispatch. E.g.:
-                 *
-                 * let adHoc$ = stream()
-                 * let AD_HOC = registerCMD({
-                 *      sub$: adHoc$,
-                 *      args: () => ({ sub$: "Y", args: 1 })
-                 * })
-                 */
+                     * Support ad-hoc stream dispatch. E.g.:
+                     *
+                     * let adHoc$ = stream()
+                     * let AD_HOC = registerCMD({
+                     *      sub$: adHoc$,
+                     *      args: () => ({ sub$: "Y", args: 1 })
+                     * })
+                     */
               // CASE: AD-HOC STREAM (SPINOFF)
               if (arg_type === "NULLARY") {
                   // if thunk, dispatch to ad-hoc stream, return acc
@@ -293,11 +358,11 @@ export const multiplex = out$ => task_array =>
               }
 
               /**
-                 * If some signature needs to deal with both Promises
-                 * and non-Promises, non-Promises are wrapped in a
-                 * Promise to "lift" them into the proper context for
-                 * handling
-                 */
+                     * If some signature needs to deal with both Promises
+                     * and non-Promises, non-Promises are wrapped in a
+                     * Promise to "lift" them into the proper context for
+                     * handling
+                     */
               // CASE: ARGS = PROMISE SIG, BUT NOT PROMISE 🤔 what happens to resolved promises?
               if (arg_type !== "PROMISE" && reso) result = Promise.resolve(args)
               // CASE: ARGS = PROMISE
@@ -373,7 +438,7 @@ export const multiplex = out$ => task_array =>
               if (result !== Object(result)) {
                   // resolved value is primitive & no sub = NoOp
                   if (!sub$) {
-                      nosub$_err(c, i)
+                      console.warn(noSubEr(c, i))
                       return acc
                   }
                   // send the Command as-is, return acc as-is.
