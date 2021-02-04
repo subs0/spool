@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> core</title>
+
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="./build/entry.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,400,700|Inconsolata,700" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+  <link type="text/css" rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/app.min.css">
+  <link type="text/css" rel="stylesheet" href="styles/iframe.css">
+  <link type="text/css" rel="stylesheet" href="">
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+
+  
+</head>
+
+
+
+<body class="layout small-header">
+    <div id="stickyNavbarOverlay"></div>
+    
+
+<div class="top-nav">
+    <div class="inner">
+        <a id="hamburger" role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+        <div class="logo">
+            
+            
+        </div>
+        <div class="menu">
+            
+            <div class="navigation">
+                <a
+                    href="index.html"
+                    class="link"
+                >
+                    API Documentation
+                </a>
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+    <div id="main">
+        <div
+            class="sidebar "
+            id="sidebarNav"
+        >
+            
+            <nav>
+                
+                    <h2><a href="index.html">Documentation</a></h2><div class="category"><h3>Modules</h3><ul><li><a href="module-commands_register.html">commands/register</a></li><li><a href="module-core.html">core</a></li></ul></div>
+                
+            </nav>
+        </div>
+        <div class="core" id="main-content-wrapper">
+            <div class="content">
+                <header class="page-title">
+                    <p>Module</p>
+                    <h1>core</h1>
+                </header>
+                
+
+
+
+
+<section>
+
+<header>
+    
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+        
+    
+    </div>
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <div class='vertical-section'>
+            <h1>Members</h1>
+            <div class="members">
+            
+                <div class="member">
+
+<h4 class="name" id=".cmd$">
+    <a class="href-link" href="#.cmd$">#</a>
+    
+        
+            <span class='tag'>static</span>
+        
+            <span class='tag'>constant</span>
+        
+    
+    <span class="code-name">
+        cmd$
+    </span>
+    
+</h4>
+
+
+
+
+<div class="description">
+    <p>Primary fork/bisect stream for indivual commands.
+attached to a <code>pubsub</code> stemming from this stream. The
+<code>topic</code> function used to alert downstream handlers is a
+simple lookup of the <code>sub$</code> key of the command</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="core_multiplex.ts.html" class="button">View Source</a>
+            <span>
+                <a href="core_multiplex.ts.html">core/multiplex.ts</a>, <a href="core_multiplex.ts.html#line465">line 465</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+</div>
+            
+                <div class="member">
+
+<h4 class="name" id=".multiplex">
+    <a class="href-link" href="#.multiplex">#</a>
+    
+        
+            <span class='tag'>static</span>
+        
+            <span class='tag'>constant</span>
+        
+    
+    <span class="code-name">
+        multiplex
+    </span>
+    
+</h4>
+
+
+
+
+<div class="description">
+    <p>Handles Collections (array) of Commands (&quot;Tasks&quot;) which
+require <em>ordered</em> choreography and/or have a dependency
+on some (a)sync data produced by a user interaction.</p>
+<h3>Subtasks:</h3>
+<p>Subtasks are the way you compose tasks. Insert a Task and
+the spool will unpack it in place (super -&gt; sub order
+preserved) A Subtask must be defined as a unary function
+that accepts an accumulator object and returns a Task,
+e.g.:</p>
+<h4>PSEUDO</h4>
+<pre class="prettyprint source lang-js"><code>// { C: Command }
+// ( { A: Accumulator }: Object ) => [{C},{C}]: Subtask
+let someSubtask = ({A}) => [{C}, {C}, ({A})=>[{C},{C}], ...]
+</code></pre>
+<h4>Example</h4>
+<pre class="prettyprint source lang-js"><code>// subtask example:
+let subtask1 = acc => [
+ { sub$: &quot;acc&quot;
+ , args: { data: acc.data } },
+ { sub$: &quot;route&quot;
+ , args: { route: { href: acc.href } } }
+]
+
+// task
+let task = [
+ { args: { href: &quot;https://my.io/todos&quot; } }, // acc init
+ { sub$: &quot;fetch&quot;
+ , args: ({ href }) => fetch(href).then(r => r.json())
+ , erro: (acc, err) => ({ sub$: &quot;cancel&quot;, args: err })
+ , reso: (acc, res) => ({ data: res }) },
+ acc => subtask1(acc), // subtask reference
+ { sub$: &quot;FLIP&quot; , args: &quot;done&quot; }
+]
+</code></pre>
+<h3>Ad-hoc stream injection Example</h3>
+<pre class="prettyprint source lang-js"><code>import { stream } from &quot;@thi.ng/rstream&quot;
+import { map, comp } from &quot;@thi.ng/transducers&quot;
+
+// ad-hoc stream
+let login = stream().subscribe(comp(
+ map(x => console.log(&quot;login ->&quot;, x)),
+ map(({ token }) => loginToMyAuth(token))
+))
+
+// subtask
+let subtask_login = ({ token }) => [
+ { sub$: login // &lt;- stream
+ , args: () => ({ token }) } // &lt;- use acc
+]
+
+// task
+let task = [
+ // no sub$, just pass data
+ { args: { href: &quot;https://my.io/auth&quot; } },
+ { sub$: login , args: () => &quot;logging in...&quot; },
+ { sub$: &quot;AUTH&quot;
+ , args: ({ href }) => fetch(href).then(r => r.json())
+ , erro: (acc, err) => ({ sub$: &quot;cancel&quot;, args: err })
+ , reso: (acc, res) => ({ token: res }) },
+ acc => subtask_login(acc),
+ { sub$: login , args: () => &quot;log in success&quot; }
+]
+</code></pre>
+<p>🔥 IMPORTANT 🔥</p>
+<p>the accumulation object that's passed between Commands
+within a task is spread together between Commands. I.e.,
+later Commands payloads are spread into the accumulator -
+potentially overwriting earlier Commands playoads, but -
+if no later payloads keys overlap with keys from earlier
+payloads those key/value pairs remain intact.</p>
+<h3>Example that doesn't work</h3>
+<pre class="prettyprint source lang-js"><code>export const pruneKVPairs = (obj, ...keys) => {
+  let out = {}
+  Object.entries(obj).forEach(([k, v]) => {
+    if (keys.some(x => x === k)) return
+    else return (out[k] = v)
+  })
+  return out
+}
+const PRUNE_PROPS_CMD = registerCMD({
+ sub$: &quot;PRUNE_PROPS_CMD&quot;,
+ args: acc => pruneKVPairs(acc, &quot;remove_me&quot;, &quot;omit_key&quot;)
+})
+</code></pre>
+<p>This Command doesn't actually prune the accumulator. It
+does prune upon receipt, but that pruned result is
+thereafter spread back together with the prior result,
+effectively undoing the prune</p>
+<p>In order to &quot;prune&quot; entries from the accumulator, you
+must do so at the receiving end of the Task. E.g., by
+applying it to the output</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="core_multiplex.ts.html" class="button">View Source</a>
+            <span>
+                <a href="core_multiplex.ts.html">core/multiplex.ts</a>, <a href="core_multiplex.ts.html#line256">line 256</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+</div>
+            
+                <div class="member">
+
+<h4 class="name" id=".out$">
+    <a class="href-link" href="#.out$">#</a>
+    
+        
+            <span class='tag'>static</span>
+        
+            <span class='tag'>constant</span>
+        
+    
+    <span class="code-name">
+        out$
+    </span>
+    
+</h4>
+
+
+
+
+<div class="description">
+    <p>Primary user-land <em>READ</em> stream. For attaching handlers
+for responding to emmitted Commands</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="core_multiplex.ts.html" class="button">View Source</a>
+            <span>
+                <a href="core_multiplex.ts.html">core/multiplex.ts</a>, <a href="core_multiplex.ts.html#line453">line 453</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+</div>
+            
+                <div class="member">
+
+<h4 class="name" id=".pattern_match">
+    <a class="href-link" href="#.pattern_match">#</a>
+    
+        
+            <span class='tag'>static</span>
+        
+            <span class='tag'>constant</span>
+        
+    
+    <span class="code-name">
+        pattern_match
+    </span>
+    
+</h4>
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="core_multiplex.ts.html" class="button">View Source</a>
+            <span>
+                <a href="core_multiplex.ts.html">core/multiplex.ts</a>, <a href="core_multiplex.ts.html#line110">line 110</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+    <h5>Example</h5>
+    
+    
+        <pre class="prettyprint"><code>acc = await pattern_match(acc, { args: { a: 1 } }, out$)</code></pre>
+    
+
+
+</div>
+            
+                <div class="member">
+
+<h4 class="name" id=".run$">
+    <a class="href-link" href="#.run$">#</a>
+    
+        
+            <span class='tag'>static</span>
+        
+            <span class='tag'>constant</span>
+        
+    
+    <span class="code-name">
+        run$
+    </span>
+    
+</h4>
+
+
+
+
+<div class="description">
+    <p>User-land event dispatch stream</p>
+<p>This stream is directly exposed to users. Any one-off
+Commands <code>next</code>ed into this stream are sent to the
+<code>cmd$</code> stream. Arrays of Commands (Tasks) are sent to
+the <code>task$</code> stream.</p>
+<p>TODO: add examples,<code>beforeunload</code> event handler within #4
+(orphan): SEE https://youtu.be/QQukWZcIptM and enable
+ctx.run.cancel() via external or internal events
+(e.g., popstate / { sub$:  &quot;cancel&quot; })</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="core_multiplex.ts.html" class="button">View Source</a>
+            <span>
+                <a href="core_multiplex.ts.html">core/multiplex.ts</a>, <a href="core_multiplex.ts.html#line444">line 444</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+</div>
+            
+                <div class="member">
+
+<h4 class="name" id=".task$">
+    <a class="href-link" href="#.task$">#</a>
+    
+        
+            <span class='tag'>static</span>
+        
+            <span class='tag'>constant</span>
+        
+    
+    <span class="code-name">
+        task$
+    </span>
+    
+</h4>
+
+
+
+
+<div class="description">
+    <p>Task stream that handles Arrays of Commands. Dispatches
+to <code>multiplex</code>er (the heart of <code>spule</code>)</p>
+</div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+        <p class="tag-source">
+            <a href="core_multiplex.ts.html" class="button">View Source</a>
+            <span>
+                <a href="core_multiplex.ts.html">core/multiplex.ts</a>, <a href="core_multiplex.ts.html#line475">line 475</a>
+            </span>
+        </p>
+    
+</dl>
+
+
+
+
+
+</div>
+            
+            </div>
+        </div>
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+            </div>
+            
+            <footer class="footer">
+                <div class="content has-text-centered">
+                    <p>Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.6</a></p>
+                    <p class="sidebar-created-by">
+                        <a href="https://github.com/SoftwareBrothers/better-docs" target="_blank">BetterDocs theme</a> provided with <i class="fas fa-heart"></i> by 
+                        <a href="http://softwarebrothers.co" target="_blank">SoftwareBrothers - JavaScript Development Agency</a>
+                    </p>
+                </div>
+            </footer>
+            
+        </div>
+        <div id="side-nav" class="side-nav">
+        </div>
+    </div>
+<script src="scripts/app.min.js"></script>
+<script>PR.prettyPrint();</script>
+<script src="scripts/linenumber.js"> </script>
+
+</body>
+</html>
