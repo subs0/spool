@@ -392,7 +392,7 @@ describe(`handlePattern`, () => {
         O$.subscribe(map(fn_1))
         const acc = await handlePattern({ key: "bloop" }, cmd_s_a_0fn2P_2pri, O$)
         expect(acc).toMatchObject({ key: "bloop" })
-        expect(fn_1.mock.results[0].value).toMatchObject({ args: 2, sub$: "cmd_s_a_0fn2P_2pri" })
+        expect(fn_1.mock.results[0].value).toMatchObject({ [CMD_ARGS]: 2, [CMD_SUB$]: "cmd_s_a_0fn2P_2pri" })
     })
     test(`7: Errors are handled if \`${CMD_ERRO}\` is provided`, async () => {
         const O$ = stream()
@@ -464,8 +464,8 @@ describe(`multiplex`, () => {
 
         expect(fn_1.mock.results.length).toBe(1)
         expect(fn_1.mock.results[0].value).toMatchObject({
-            args : { key: "lorem  -> a_1fn2P_2obj" },
-            sub$ : "cmd_s_a_1fn2P_2obj"
+            [CMD_ARGS] : { key: "lorem  -> a_1fn2P_2obj" },
+            [CMD_SUB$] : "cmd_s_a_1fn2P_2obj"
         })
     })
     test(`3: Subtask with a single dispatch`, async () => {
@@ -487,8 +487,8 @@ describe(`multiplex`, () => {
 
         expect(fn_1.mock.results.length).toBe(1)
         expect(fn_1.mock.results[0].value).toMatchObject({
-            args : { key: "lorem -> SUBTASK was here! -> a_1fn2P_2obj" },
-            sub$ : "cmd_s_a_1fn2P_2obj"
+            [CMD_ARGS] : { key: "lorem -> SUBTASK was here! -> a_1fn2P_2obj" },
+            [CMD_SUB$] : "cmd_s_a_1fn2P_2obj"
         })
     })
     test(`4: Primitives aren't dispatched`, async () => {
@@ -511,41 +511,8 @@ describe(`multiplex`, () => {
         expect(warned_1.mock.calls.length).toBe(1) // doesn't warn after error
         expect(fn_1.mock.results.length).toBe(1)
         expect(fn_1.mock.results[0].value).toMatchObject({
-            args : { key: "lorem " }, // initial reduce(fn, {}) empty accumulator remains
-            sub$ : "noop"
+            [CMD_ARGS] : { key: "lorem " }, // initial reduce(fn, {}) empty accumulator remains
+            [CMD_SUB$] : "noop"
         })
     })
 })
-
-//const mock_fn = jest.fn(x => x + "holio" )
-//const analytics$ = stream()
-//analytics$.subscribe(map(mock_fn))
-//const args_fn_0_$ = () => ({ [CMD_SUB$]: analytics$, args: "✅ test: ad-hoc stream" })
-//analytics$.next("bung")
-
-//describe("test1", () => {
-//    test("mock", () => {
-//        expect(mock_fn.mock.results[0].value).toBe("bungholio")
-//    })
-//})
-
-//describe("run$", () => {
-//    test("Command: basic", done => {
-//        test$.subscribeTopic("leeds", {
-//            next  : x => (
-//                expect(x.res).toBe(
-//                    `
-//                    There once was a farmer from Leeds,
-//                    Who'd swallowed a packet of seeds.
-//                    It soon came to pass,
-//                    He'd be covered with grass,
-//                    Yet has all the tomatoes he needs
-//                    `.replace(WSRGX, "")
-//                ),
-//                done()
-//            ),
-//            error : done
-//        })
-//        run$.next(LEEDS)
-//    })
-//})
