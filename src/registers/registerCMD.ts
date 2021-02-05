@@ -102,7 +102,7 @@ export const registerCMD = (command: Command = null) => {
     // console.log({ knowns, unknowns })
 
     if (unknowns.length > 0) {
-        throw new Error(xKeyError(err_str, command, unknowns, sub$, undefined))
+        throw new Error(xKeyError(err_str, command, unknowns, undefined))
     }
 
     if (src$) supplement$CMD(command, out$)
