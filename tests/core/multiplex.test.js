@@ -2,11 +2,9 @@ import { stream, transduce } from "@thi.ng/rstream"
 import { map } from "@thi.ng/transducers"
 
 import { CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SRC$, CMD_SUB$, CMD_WORK } from "@-0/keys"
-import { stringify_type } from "@-0/utils"
 
 import { cmd, log, a_async, a_P } from "../fixtures"
-import { run$, cmd$, out$, task$, multiplex, keys_match, process_args, pattern_match } from "../../src/core"
-import { registerCMD, log$ } from "../../src/registers"
+import { run$, cmd$, out$, task$, multiplex, keys_match, processArgs, handlePattern } from "../../src/core"
 
 /**
  *
@@ -322,93 +320,85 @@ describe("pattern_keys", () => {
     test(`25: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AERS"`, () => expect(keys_match(cmd_s_a_1fn2P_boo_r_2fn_yay_e_3fn_err)).toBe("AERS"))
 })
 
-describe("process_args", () => {
-    test(`1: Objects`, async () =>
-        expect(await process_args({}, { mad: "world" })).toMatchObject({ args_type: "OBJECT", args: { mad: "world" } }))
-    test(`2: Error Objects`, async () =>
-        expect(await process_args({}, new Error("shoot"))).toMatchObject({ args_type: "ERROR", args: Error("shoot") }))
-    test(`3: Arrays`, async () =>
-        expect(await process_args({}, [ "a", "b" ])).toMatchObject({ args_type: "ARRAY", args: [ "a", "b" ] }))
-    test(`4: Promises`, async () =>
-        expect(await process_args({}, Promise.resolve(true))).toMatchObject({ args_type: "PRIMITIVE", args: true }))
-    test(`5: Nullary Function`, async () =>
-        expect(await process_args({}, () => ({ a: 1 }))).toMatchObject({ args_type: "OBJECT", args: { a: 1 } }))
-    test(`6: new Promises`, async () =>
-        expect(await process_args({}, new Promise(res => res(true)))).toMatchObject({
-            args_type : "PRIMITIVE",
-            args      : true
-        }))
-    test(`7: Unary Functions`, async () =>
-        expect(await process_args({ a: 1 }, ({ a }) => ({ a: a + 1 }))).toMatchObject({
-            args_type : "OBJECT",
-            args      : { a: 2 }
-        }))
-    test(`8: a => Promise`, async () =>
-        expect(await process_args({ a: "to" }, ({ a }) => new Promise(r => r(a + "do")))).toMatchObject({
-            args_type : "PRIMITIVE",
-            args      : "todo"
-        }))
-    test(`9: a => Object`, async () =>
-        expect(await process_args({ a: "to" }, ({ a }) => ({ a: a + "do" }))).toMatchObject({
-            args_type : "OBJECT",
-            args      : { a: "todo" }
-        }))
-    test(`10: async a => Promise => Object`, async () =>
-        expect(await process_args({ a: "to" }, a => a_async(a))).toMatchObject({
-            args_type : "OBJECT",
-            args      : { a: "to" }
-        }))
+// prettier-ignore
+describe("processArgs", () => {
+    test(`1: Objects`, async () => 
+        expect(await processArgs({}, { mad: "world" }))
+        .toMatchObject({ args_type: "OBJECT", args: { mad: "world" } }))
+    test(`2: Error Objects`, async () => 
+        expect(await processArgs({}, new Error("shoot")))
+        .toMatchObject({ args_type: "ERROR", args: Error("shoot") }))
+    test(`3: Arrays`, async () => 
+        expect(await processArgs({}, [ "a", "b" ]))
+        .toMatchObject({ args_type: "ARRAY", args: [ "a", "b" ] }))
+    test(`4: Promises`, async () => 
+        expect(await processArgs({}, Promise.resolve(true)))
+        .toMatchObject({ args_type: "PRIMITIVE", args: true }))
+    test(`5: Nullary Function`, async () => 
+        expect(await processArgs({}, () => ({ a: 1 })))
+        .toMatchObject({ args_type: "OBJECT", args: { a: 1 } }))
+    test(`6: new Promises`, async () => 
+        expect(await processArgs({}, new Promise(res => res(true))))
+        .toMatchObject({ args_type : "PRIMITIVE", args: true }))
+    test(`7: Unary Functions`, async () => 
+        expect(await processArgs({ a: 1 }, ({ a }) => ({ a: a + 1 })))
+        .toMatchObject({ args_type : "OBJECT", args: { a: 2 } }))
+    test(`8: a => Promise`, async () => 
+        expect(await processArgs({ a: "to" }, ({ a }) => new Promise(r => r(a + "do"))))
+        .toMatchObject({ args_type : "PRIMITIVE", args: "todo" }))
+    test(`9: a => Object`, async () => 
+        expect(await processArgs({ a: "to" }, ({ a }) => ({ a: a + "do" })))
+        .toMatchObject({ args_type : "OBJECT", args: { a: "todo" } }))
+    test(`10: async a => Promise => Object`, async () => 
+        expect(await processArgs({ a: "to" }, a => a_async(a)))
+        .toMatchObject({ args_type : "OBJECT", args: { a: "to" } }))
 })
 
-describe(`pattern_match`, () => {
-    test(`1: Errors result in acc = null if no \`${CMD_ERRO}\` is provided`, async () => {
-        const warned_1 = jest.fn()
-        jest.spyOn(console, "warn").mockImplementation(warned_1)
+const acc_init = { key: "bloop" }
+const warned = (x = jest.fn()) => (jest.spyOn(console, "warn").mockImplementation(x), x)
 
-        const acc = await pattern_match({ 2: "b" }, { [CMD_ARGS]: new Error("bloop") })
+describe(`handlePattern`, () => {
+    test(`1: Errors result in acc = null if no \`${CMD_ERRO}\` is provided`, async () => {
+        const warned_1 = warned()
+        const acc = await handlePattern({ 2: "b" }, { [CMD_ARGS]: new Error("bloop") })
         expect(acc).toBe(null)
+        expect(warned_1.mock.calls.length).toBe(1)
     })
     test(`2: Promises are handled by \`${CMD_RESO}\` if provided and resulting Objects are spread with accumulator`, async () => {
-        const acc = await pattern_match({ key: "bloop" }, cmd_a_1fn2P_2obj_r_2fn_yay)
+        const acc = await handlePattern({ key: "bloop" }, cmd_a_1fn2P_2obj_r_2fn_yay)
         expect(acc).toMatchObject({ key: "bloop -> a_1fn2P_2obj -> r_2fn_yay" })
     })
-    test(`3: Error if no \`${CMD_ARGS}\` provided`, async () => {
-        const warned_1 = jest.fn()
-        jest.spyOn(console, "warn").mockImplementation(warned_1)
-
-        const acc = await pattern_match({ key: "bloop" }, cmd_r_2fn_yay)
-
+    test(`3: Warning if no \`${CMD_ARGS}\` provided -> acc returned as-is`, async () => {
+        const warned_1 = warned()
+        const acc = await handlePattern(acc_init, cmd_r_2fn_yay)
         expect(warned_1.mock.calls.length).toBe(1)
-        expect(acc).toMatchObject({ key: "bloop" })
+        expect(acc).toMatchObject(acc_init)
     })
-    test(`4: Unhandled errors null out accumulator`, async () => {
-        const warned_1 = jest.fn()
-        jest.spyOn(console, "warn").mockImplementation(warned_1)
-
-        const acc = await pattern_match({ key: "bloop" }, cmd_s_a_P2error)
-
+    test(`4: Warning for Primitive \`${CMD_ARGS}\` with no \`${CMD_SUB$}\`, and do nothing`, async () => {
+        const warned_1 = warned()
+        const acc = await handlePattern(acc_init, cmd_a_prim)
+        expect(warned_1.mock.calls.length).toBe(1)
+        expect(acc).toMatchObject(acc_init)
+    })
+    test(`5: Unhandled errors null out accumulator`, async () => {
+        const warned_1 = warned()
+        const acc = await handlePattern({ key: "bloop" }, cmd_s_a_P2error)
         expect(warned_1.mock.calls.length).toBe(1)
         expect(acc).toBe(null)
     })
-    test(`5: Commands with a ${CMD_SUB$} that result in a Primitive are dispatched, but don't effect accumulator`, async () => {
+    test(`6: Commands with a \`${CMD_SUB$}\` that result in a Primitive are dispatched, don't effect accumulator`, async () => {
         const O$ = stream()
         const fn_1 = jest.fn(x => x)
         O$.subscribe(map(fn_1))
-
-        const acc = await pattern_match({ key: "bloop" }, cmd_s_a_0fn2P_2pri, O$)
-
+        const acc = await handlePattern({ key: "bloop" }, cmd_s_a_0fn2P_2pri, O$)
         expect(acc).toMatchObject({ key: "bloop" })
         expect(fn_1.mock.results[0].value).toMatchObject({ args: 2, sub$: "cmd_s_a_0fn2P_2pri" })
     })
-    test(`x: Errors are handled if \`${CMD_ERRO}\` is provided`, async () => {
-        const warned_1 = jest.fn()
-        jest.spyOn(console, "warn").mockImplementation(warned_1)
-
+    test(`7: Errors are handled if \`${CMD_ERRO}\` is provided`, async () => {
         const O$ = stream()
         const fn_1 = jest.fn(x => x)
         O$.subscribe(map(fn_1))
-
-        const acc = await pattern_match(
+        const acc = await handlePattern(
             {},
             { [CMD_ARGS]: new Error("bloop"), [CMD_ERRO]: (A, E, O$) => (O$.next("💩"), null) },
             O$
@@ -419,9 +409,8 @@ describe(`pattern_match`, () => {
 })
 
 describe(`multiplex`, () => {
-    test(`1: doesn't dispatch Commands without ${CMD_ARGS}`, async () => {
-        const warned_1 = jest.fn()
-        jest.spyOn(console, "warn").mockImplementation(warned_1)
+    test(`1: Warning if no \`${CMD_ARGS}\` value -> accumulator unaffected`, async () => {
+        const warned_1 = warned()
 
         const O$ = stream()
         const fn_1 = jest.fn()
@@ -443,9 +432,8 @@ describe(`multiplex`, () => {
         expect(fn_1.mock.results.length).toBe(0)
         expect(warned_1.mock.calls.length).toBe(7)
     })
-    test(`2: Errors in Tasks shortcircuit the Task`, async () => {
-        const warned_1 = jest.fn()
-        jest.spyOn(console, "warn").mockImplementation(warned_1)
+    test(`2: Errors in Tasks causes shortcircuit`, async () => {
+        const warned_1 = warned()
 
         const O$ = stream()
         const fn_1 = jest.fn(x => x)
@@ -456,7 +444,7 @@ describe(`multiplex`, () => {
 
         await spool(Task)
 
-        expect(warned_1.mock.calls.length).toBe(1)
+        expect(warned_1.mock.calls.length).toBe(1) // doesn't warn after error
         expect(fn_1.mock.results.length).toBe(1)
         expect(fn_1.mock.results[0].value).toMatchObject({ args: 2, sub$: "cmd_s_a_0fn2P_2pri" })
     })
@@ -504,20 +492,23 @@ describe(`multiplex`, () => {
         })
     })
     test(`4: Primitives aren't dispatched`, async () => {
+        const warned_1 = warned()
+
         const O$ = stream()
         const fn_1 = jest.fn(x => x)
         O$.subscribe(map(fn_1))
         const spool = multiplex(O$)
 
         const Task = [
-            cmd_a_prim, // { args: 2 } -> no dispatch
             cmd_a_obj, // { args: { key: "lorem" } }
+            cmd_a_prim, // { args: 2 } -> warn => no dispatch
             cmd.a_async, // { args: async x => await a_P(x) } -> no dispatch
             { [CMD_SUB$]: "noop", [CMD_ARGS]: x => x }
         ]
 
         await spool(Task)
 
+        expect(warned_1.mock.calls.length).toBe(1) // doesn't warn after error
         expect(fn_1.mock.results.length).toBe(1)
         expect(fn_1.mock.results[0].value).toMatchObject({
             args : { key: "lorem " }, // initial reduce(fn, {}) empty accumulator remains

@@ -68,7 +68,7 @@ ${i ? key_index_err(C, i) : ""}
 
 const NA_keys = (c, i) => {
     const knowns = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO ]
-    const [ unknowns, unknown_kvs ] = diff_keys(knowns, c)
+    const [ _, unknown_kvs ] = diff_keys(knowns, c)
     return xKeyError(err_str, c, unknown_kvs, i)
 }
 
@@ -94,20 +94,20 @@ export const keys_match = C => new EquivMap([
 
 // prettier-ignore
 // recursive function that resolves all non static values
-export const process_args = async (acc, args) => {
+export const processArgs = async (acc, args) => {
     const args_type = stringify_type(args)
     switch (args_type) {
         case "PRIMITIVE": case "OBJECT": case "ERROR": case "ARRAY":
             return { args_type, args }
         case "N-ARY": case "BINARY":
-            console.warn(`${CMD_ARGS} function arity > 1: ${stringify_fn(args)}`)
+            console.warn(`${CMD_ARGS} function arity !== 1: ${stringify_fn(args)}`)
         case "UNARY":
-            return await process_args(acc, args(acc))
+            return await processArgs(acc, args(acc))
         case "PROMISE":
             let resolved = await args.catch(e => e)
-            return await process_args(acc, resolved)
+            return await processArgs(acc, resolved)
         case "NULLARY":
-            return await process_args(acc, args())
+            return await processArgs(acc, args())
         default:
             return "UNDEFINED"
     }
@@ -118,7 +118,7 @@ export const process_args = async (acc, args) => {
  * @example
  * acc = await pattern_match(acc, { args: { a: 1 } }, out$)
  */
-export const pattern_match = async (acc, C, out$ = { next: null }, i = null) => {
+export const handlePattern = async (acc, C, out$ = { next: null }, i = null) => {
     if (acc === null) return null
     const K_M = keys_match(C)
     if (K_M === "NO_ARGS") {
@@ -126,7 +126,7 @@ export const pattern_match = async (acc, C, out$ = { next: null }, i = null) => 
         return acc
     }
     const _args = C[CMD_ARGS]
-    const { args_type, args } = await process_args(acc, _args)
+    const { args_type, args } = await processArgs(acc, _args)
 
     //console.log(`
     //K_M: ${K_M}
@@ -141,20 +141,14 @@ export const pattern_match = async (acc, C, out$ = { next: null }, i = null) => 
 
     // equivalent matches are returned in LIFO order -> add least least restrictive cases first ⬇
     let result = new EquivMap([ 
-        [ { K_M,                                 args_type: "UNKNOWN"   },() => (console.warn(NA_keys(C, i), null)) ],
+        [ { K_M,                                 args_type: "UNKNOWN"   },() => (console.warn(NA_keys(C, i)), null) ],
         [ { K_M,                                 args_type: "OBJECT"    },() => __A ],
-        [ { K_M: "AE",                           args_type: "OBJECT"    },() => __A ],
-        // if primitive and no topic key -> warn and return acc
         [ { K_M: `${!K_M.includes("S") && K_M}`, args_type: "PRIMITIVE" },() => (console.warn(noSubEr(__C, i)), acc) ],
         [ { K_M: `${K_M.includes("S") && K_M}`,  args_type: "PRIMITIVE" },() => (out$.next(__C), acc) ],
         [ { K_M: `${K_M.includes("S") && K_M}`,  args_type: "OBJECT"    },() => (out$.next(__C), __A) ],
-        // whatever args type (sans errors), if resolver, let that handle the result
         [ { K_M: `${K_M.includes("R") && K_M}`,  args_type              },() => __RA ],
-        // ditto + if topic subscriber, send it downstream
         [ { K_M: `${K_M.includes("RS") && K_M}`, args_type              },() => (out$.next(__R), __RA) ],
-        // isn't triggered if an error handler is included
         [ { K_M,                                 args_type: "ERROR"     },() => (console.warn(noEroEr(__C, i)), null) ],
-        // if ERROR and handler -> handle error
         [ { K_M: `${K_M.includes("E") && K_M}`,  args_type: "ERROR"     },() => C[CMD_ERRO](acc, args, out$) ]
     ]).get({ K_M, args_type }) || null
 
@@ -295,167 +289,7 @@ export const multiplex = out$ => task_array =>
                   }
               }
 
-              return await pattern_match(acc, c, out$, i)
-
-              //  // 🧲
-              //  const props_type = keys_match(c)
-
-              //  if (props_type === "NO_ARGS") {
-              //      console.warn(no_args_error(c, i))
-              //      return (acc = null)
-              //  }
-
-              //  // grab Command props
-              //  const sub$ = c[CMD_SUB$]
-              //  const args = c[CMD_ARGS]
-              //  const erro = c[CMD_ERRO]
-              //  const reso = c[CMD_RESO]
-
-              // TODO: bring this in...
-              //  // ensure no unknown Command props
-              //  const knowns = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO ]
-              //  const [ unknowns, unknown_kvs ] = diff_keys(knowns, c)
-              //  if (unknowns.length > 0) throw new Error(xKeyError(err_str, c, unknown_kvs, sub$, i))
-
-              //  // 🧲
-              //  const arg_type = stringify_type(args)
-
-              //  /* 👆 I: Step 1 -> resolve args to a value 👆 */
-
-              //  // first we set the result to the args
-              //  let result = args
-
-              //  // if primitive value with no sub$ prop, use of just
-              //  // data would replace accumulator and wouldn't be
-              //  // useful for side-effects. I.e., no work done
-
-              //  // CASE: ARGS = NOOP PRIMITIVE
-              //  if (arg_type === "PRIMITIVE" && !sub$) {
-              //      console.warn(noSubEr(c, i))
-              //      return acc
-              //  }
-              //  // if object (static), send the Command as-is and spread into
-              //  // acc. just data = no use of accumulator
-
-              //  // CASE: ARGS = STATIC OBJECT
-              //  if (arg_type === "OBJECT") {
-              //      if (!sub$) return { ...acc, ...args }
-              //      out$.next(c)
-              //      return { ...acc, ...args }
-              //  }
-
-              //  /**
-              //         * Support ad-hoc stream dispatch. E.g.:
-              //         *
-              //         * let adHoc$ = stream()
-              //         * let AD_HOC = registerCMD({
-              //         *      sub$: adHoc$,
-              //         *      args: () => ({ sub$: "Y", args: 1 })
-              //         * })
-              //         */
-              //  // CASE: AD-HOC STREAM (SPINOFF)
-              //  if (arg_type === "NULLARY") {
-              //      // if thunk, dispatch to ad-hoc stream, return acc
-              //      // as-is ⚠ this command will not be waited on
-              //      result = args()
-              //      console.log(`dispatching to ad-hoc stream: ${sub$.id}`)
-              //      sub$.next(result)
-              //      return acc
-              //  }
-
-              //  /**
-              //         * If some signature needs to deal with both Promises
-              //         * and non-Promises, non-Promises are wrapped in a
-              //         * Promise to "lift" them into the proper context for
-              //         * handling
-              //         */
-              //  // CASE: ARGS = PROMISE SIG, BUT NOT PROMISE 🤔 what happens to resolved promises?
-              //  if (arg_type !== "PROMISE" && reso) result = Promise.resolve(args)
-              //  // CASE: ARGS = PROMISE
-              //  if (arg_type === "PROMISE") result = await args.catch(e => e)
-
-              //  // if function, call it with acc and resolve any Promises
-              //  // CASE ARGS = NON-NULLARY FUNCTION
-              //  if (arg_type === "UNARY") {
-              //      let temp = args(acc)
-              //      result = isPromise(temp) ? await temp.catch(e => e) : temp
-              //  }
-
-              //  /* 🤞 II: Step 2 -> deal with any Error 🤞 */
-
-              //  // CASE: RESOLVED ARGS = ERROR
-              //  if (result instanceof Error) {
-              //      // promise handler
-              //      if (reso) {
-              //          // reject handler
-              //          if (erro) {
-              //              const err_type = stringify_type(erro)
-
-              //              // Don't reset accumulator
-              //              if (err_type === "NULLARY") {
-              //                  let ERR = erro()
-              //                  // Error Command
-              //                  if (getIn(ERR, [ CMD_SUB$ ])) out$.next(ERR)
-              //                  return acc
-              //              }
-
-              //              // if the error msg is a Command, send
-              //              if (getIn(erro, [ CMD_SUB$ ])) out$.next(erro)
-              //              // Function resets accumulator _and_ sends
-              //              // saved Command to out$ stream
-              //              // e.g.: (acc, err) => ({ sub$, args })
-              //              if (err_type === "BINARY") {
-              //                  if (getIn(erro(), [ CMD_SUB$ ])) {
-              //                      let ERR_CMD = erro(acc, result)
-              //                      out$.next(ERR_CMD)
-              //                  }
-              //                  acc = erro(acc, result)
-              //              }
-              //          }
-              //          // implicitly reset if no error handler provided
-              //          acc = null
-              //      }
-              //      // no promise handler
-              //      // no reject handler: carry on
-              //      acc === null || console.warn(`no \`erro\` (Error) handler set for ${sub$ || "error"} ${result}`)
-              //      return acc
-              //  }
-
-              //  // Not an Error
-              //  if (reso) {
-              //      // resolve Promise
-              //      let resolved = reso(acc, result)
-              //      // if the resolved value is a Command send it
-              //      // through w/out affecting acc
-              //      if (getIn(resolved, [ CMD_SUB$ ])) return out$.next(resolved)
-              //      // else just assign result to resolved val and
-              //      // process in next step
-              //      result = resolved
-              //  }
-
-              //  /* 👌 III: Step 3 -> Deliver resolved values 👌 */
-
-              //  // resolved value with no sub$ key? -> data
-              //  // acquisition only! spread val into acc
-              //  if (result === Object(result) && !sub$) return { ...acc, ...result }
-
-              //  // if the final result is primitive, you can't refer
-              //  // to this value in following Commands
-              //  if (result !== Object(result)) {
-              //      // resolved value is primitive & no sub = NoOp
-              //      if (!sub$) {
-              //          console.warn(noSubEr(c, i))
-              //          return acc
-              //      }
-              //      // send the Command as-is, return acc as-is.
-              //      out$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
-              //      return acc
-              //  }
-
-              //  //console.log(`NO CONDITIONS MET FOR ${sub$}`)
-              //  // if the result has made it this far, send it along
-              //  out$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
-              //  return { ...acc, ...result }
+              return await handlePattern(acc, c, out$, i) // returns accumulator
           }, Promise.resolve({}))
         : (() => {
               throw new Error(task_not_array_error(task_array))
