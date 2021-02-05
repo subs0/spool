@@ -116,15 +116,6 @@ export const registerCMD = (command: Command = null) => {
           }
         : { [CMD_SUB$]: sub$, [CMD_ARGS]: args }
 
-    const CMD_s = reso
-        ? {
-              [CMD_SUB$]: sub$,
-              [CMD_ARGS]: stringify_fn(args),
-              [CMD_RESO]: stringify_fn(reso),
-              [CMD_ERRO]: stringify_fn(erro)
-          }
-        : { [CMD_SUB$]: sub$, [CMD_ARGS]: stringify_fn(args) }
-
     // @ts-ignore
     out$.subscribeTopic(
         sub$,
