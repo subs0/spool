@@ -119,12 +119,10 @@ export const pattern_match = async (acc, C, out$ = { next: null }, i = null) => 
         console.warn(no_args_error(C, i))
         return acc
     }
-
-
     const _args = C[CMD_ARGS]
     const { args_type, args } = await process_args(acc, _args)
 
-    //log(`
+    //console.log(`
     //K_M: ${K_M}
     //args_type: ${args_type}
     //args: ${args}
@@ -290,166 +288,167 @@ export const multiplex = out$ => task_array =>
                   }
               }
 
-              //  return await pattern_match(acc, c, out$, i)
+              return await pattern_match(acc, c, out$, i)
 
-              // 🧲
-              const props_type = keys_match(c)
+              //  // 🧲
+              //  const props_type = keys_match(c)
 
-              if (props_type === "NO_ARGS") {
-                  console.warn(no_args_error(c, i))
-                  return (acc = null)
-              }
+              //  if (props_type === "NO_ARGS") {
+              //      console.warn(no_args_error(c, i))
+              //      return (acc = null)
+              //  }
 
-              // grab Command props
-              const sub$ = c[CMD_SUB$]
-              const args = c[CMD_ARGS]
-              const erro = c[CMD_ERRO]
-              const reso = c[CMD_RESO]
+              //  // grab Command props
+              //  const sub$ = c[CMD_SUB$]
+              //  const args = c[CMD_ARGS]
+              //  const erro = c[CMD_ERRO]
+              //  const reso = c[CMD_RESO]
 
-              // ensure no unknown Command props
-              const knowns = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO ]
-              const [ unknowns, unknown_kvs ] = diff_keys(knowns, c)
-              if (unknowns.length > 0) throw new Error(xKeyError(err_str, c, unknown_kvs, sub$, i))
+              // TODO: bring this in...
+              //  // ensure no unknown Command props
+              //  const knowns = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO ]
+              //  const [ unknowns, unknown_kvs ] = diff_keys(knowns, c)
+              //  if (unknowns.length > 0) throw new Error(xKeyError(err_str, c, unknown_kvs, sub$, i))
 
-              // 🧲
-              const arg_type = stringify_type(args)
+              //  // 🧲
+              //  const arg_type = stringify_type(args)
 
-              /* 👆 I: Step 1 -> resolve args to a value 👆 */
+              //  /* 👆 I: Step 1 -> resolve args to a value 👆 */
 
-              // first we set the result to the args
-              let result = args
+              //  // first we set the result to the args
+              //  let result = args
 
-              // if primitive value with no sub$ prop, use of just
-              // data would replace accumulator and wouldn't be
-              // useful for side-effects. I.e., no work done
+              //  // if primitive value with no sub$ prop, use of just
+              //  // data would replace accumulator and wouldn't be
+              //  // useful for side-effects. I.e., no work done
 
-              // CASE: ARGS = NOOP PRIMITIVE
-              if (arg_type === "PRIMITIVE" && !sub$) {
-                  console.warn(noSubEr(c, i))
-                  return acc
-              }
-              // if object (static), send the Command as-is and spread into
-              // acc. just data = no use of accumulator
+              //  // CASE: ARGS = NOOP PRIMITIVE
+              //  if (arg_type === "PRIMITIVE" && !sub$) {
+              //      console.warn(noSubEr(c, i))
+              //      return acc
+              //  }
+              //  // if object (static), send the Command as-is and spread into
+              //  // acc. just data = no use of accumulator
 
-              // CASE: ARGS = STATIC OBJECT
-              if (arg_type === "OBJECT") {
-                  if (!sub$) return { ...acc, ...args }
-                  out$.next(c)
-                  return { ...acc, ...args }
-              }
+              //  // CASE: ARGS = STATIC OBJECT
+              //  if (arg_type === "OBJECT") {
+              //      if (!sub$) return { ...acc, ...args }
+              //      out$.next(c)
+              //      return { ...acc, ...args }
+              //  }
 
-              /**
-                     * Support ad-hoc stream dispatch. E.g.:
-                     *
-                     * let adHoc$ = stream()
-                     * let AD_HOC = registerCMD({
-                     *      sub$: adHoc$,
-                     *      args: () => ({ sub$: "Y", args: 1 })
-                     * })
-                     */
-              // CASE: AD-HOC STREAM (SPINOFF)
-              if (arg_type === "NULLARY") {
-                  // if thunk, dispatch to ad-hoc stream, return acc
-                  // as-is ⚠ this command will not be waited on
-                  result = args()
-                  console.log(`dispatching to ad-hoc stream: ${sub$.id}`)
-                  sub$.next(result)
-                  return acc
-              }
+              //  /**
+              //         * Support ad-hoc stream dispatch. E.g.:
+              //         *
+              //         * let adHoc$ = stream()
+              //         * let AD_HOC = registerCMD({
+              //         *      sub$: adHoc$,
+              //         *      args: () => ({ sub$: "Y", args: 1 })
+              //         * })
+              //         */
+              //  // CASE: AD-HOC STREAM (SPINOFF)
+              //  if (arg_type === "NULLARY") {
+              //      // if thunk, dispatch to ad-hoc stream, return acc
+              //      // as-is ⚠ this command will not be waited on
+              //      result = args()
+              //      console.log(`dispatching to ad-hoc stream: ${sub$.id}`)
+              //      sub$.next(result)
+              //      return acc
+              //  }
 
-              /**
-                     * If some signature needs to deal with both Promises
-                     * and non-Promises, non-Promises are wrapped in a
-                     * Promise to "lift" them into the proper context for
-                     * handling
-                     */
-              // CASE: ARGS = PROMISE SIG, BUT NOT PROMISE 🤔 what happens to resolved promises?
-              if (arg_type !== "PROMISE" && reso) result = Promise.resolve(args)
-              // CASE: ARGS = PROMISE
-              if (arg_type === "PROMISE") result = await args.catch(e => e)
+              //  /**
+              //         * If some signature needs to deal with both Promises
+              //         * and non-Promises, non-Promises are wrapped in a
+              //         * Promise to "lift" them into the proper context for
+              //         * handling
+              //         */
+              //  // CASE: ARGS = PROMISE SIG, BUT NOT PROMISE 🤔 what happens to resolved promises?
+              //  if (arg_type !== "PROMISE" && reso) result = Promise.resolve(args)
+              //  // CASE: ARGS = PROMISE
+              //  if (arg_type === "PROMISE") result = await args.catch(e => e)
 
-              // if function, call it with acc and resolve any Promises
-              // CASE ARGS = NON-NULLARY FUNCTION
-              if (arg_type === "UNARY") {
-                  let temp = args(acc)
-                  result = isPromise(temp) ? await temp.catch(e => e) : temp
-              }
+              //  // if function, call it with acc and resolve any Promises
+              //  // CASE ARGS = NON-NULLARY FUNCTION
+              //  if (arg_type === "UNARY") {
+              //      let temp = args(acc)
+              //      result = isPromise(temp) ? await temp.catch(e => e) : temp
+              //  }
 
-              /* 🤞 II: Step 2 -> deal with any Error 🤞 */
+              //  /* 🤞 II: Step 2 -> deal with any Error 🤞 */
 
-              // CASE: RESOLVED ARGS = ERROR
-              if (result instanceof Error) {
-                  // promise handler
-                  if (reso) {
-                      // reject handler
-                      if (erro) {
-                          const err_type = stringify_type(erro)
+              //  // CASE: RESOLVED ARGS = ERROR
+              //  if (result instanceof Error) {
+              //      // promise handler
+              //      if (reso) {
+              //          // reject handler
+              //          if (erro) {
+              //              const err_type = stringify_type(erro)
 
-                          // Don't reset accumulator
-                          if (err_type === "NULLARY") {
-                              let ERR = erro()
-                              // Error Command
-                              if (getIn(ERR, [ CMD_SUB$ ])) out$.next(ERR)
-                              return acc
-                          }
+              //              // Don't reset accumulator
+              //              if (err_type === "NULLARY") {
+              //                  let ERR = erro()
+              //                  // Error Command
+              //                  if (getIn(ERR, [ CMD_SUB$ ])) out$.next(ERR)
+              //                  return acc
+              //              }
 
-                          // if the error msg is a Command, send
-                          if (getIn(erro, [ CMD_SUB$ ])) out$.next(erro)
-                          // Function resets accumulator _and_ sends
-                          // saved Command to out$ stream
-                          // e.g.: (acc, err) => ({ sub$, args })
-                          if (err_type === "BINARY") {
-                              if (getIn(erro(), [ CMD_SUB$ ])) {
-                                  let ERR_CMD = erro(acc, result)
-                                  out$.next(ERR_CMD)
-                              }
-                              acc = erro(acc, result)
-                          }
-                      }
-                      // implicitly reset if no error handler provided
-                      acc = null
-                  }
-                  // no promise handler
-                  // no reject handler: carry on
-                  acc === null || console.warn(`no \`erro\` (Error) handler set for ${sub$ || "error"} ${result}`)
-                  return acc
-              }
+              //              // if the error msg is a Command, send
+              //              if (getIn(erro, [ CMD_SUB$ ])) out$.next(erro)
+              //              // Function resets accumulator _and_ sends
+              //              // saved Command to out$ stream
+              //              // e.g.: (acc, err) => ({ sub$, args })
+              //              if (err_type === "BINARY") {
+              //                  if (getIn(erro(), [ CMD_SUB$ ])) {
+              //                      let ERR_CMD = erro(acc, result)
+              //                      out$.next(ERR_CMD)
+              //                  }
+              //                  acc = erro(acc, result)
+              //              }
+              //          }
+              //          // implicitly reset if no error handler provided
+              //          acc = null
+              //      }
+              //      // no promise handler
+              //      // no reject handler: carry on
+              //      acc === null || console.warn(`no \`erro\` (Error) handler set for ${sub$ || "error"} ${result}`)
+              //      return acc
+              //  }
 
-              // Not an Error
-              if (reso) {
-                  // resolve Promise
-                  let resolved = reso(acc, result)
-                  // if the resolved value is a Command send it
-                  // through w/out affecting acc
-                  if (getIn(resolved, [ CMD_SUB$ ])) return out$.next(resolved)
-                  // else just assign result to resolved val and
-                  // process in next step
-                  result = resolved
-              }
+              //  // Not an Error
+              //  if (reso) {
+              //      // resolve Promise
+              //      let resolved = reso(acc, result)
+              //      // if the resolved value is a Command send it
+              //      // through w/out affecting acc
+              //      if (getIn(resolved, [ CMD_SUB$ ])) return out$.next(resolved)
+              //      // else just assign result to resolved val and
+              //      // process in next step
+              //      result = resolved
+              //  }
 
-              /* 👌 III: Step 3 -> Deliver resolved values 👌 */
+              //  /* 👌 III: Step 3 -> Deliver resolved values 👌 */
 
-              // resolved value with no sub$ key? -> data
-              // acquisition only! spread val into acc
-              if (result === Object(result) && !sub$) return { ...acc, ...result }
+              //  // resolved value with no sub$ key? -> data
+              //  // acquisition only! spread val into acc
+              //  if (result === Object(result) && !sub$) return { ...acc, ...result }
 
-              // if the final result is primitive, you can't refer
-              // to this value in following Commands
-              if (result !== Object(result)) {
-                  // resolved value is primitive & no sub = NoOp
-                  if (!sub$) {
-                      console.warn(noSubEr(c, i))
-                      return acc
-                  }
-                  // send the Command as-is, return acc as-is.
-                  out$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
-                  return acc
-              }
+              //  // if the final result is primitive, you can't refer
+              //  // to this value in following Commands
+              //  if (result !== Object(result)) {
+              //      // resolved value is primitive & no sub = NoOp
+              //      if (!sub$) {
+              //          console.warn(noSubEr(c, i))
+              //          return acc
+              //      }
+              //      // send the Command as-is, return acc as-is.
+              //      out$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
+              //      return acc
+              //  }
 
-              //console.log(`NO CONDITIONS MET FOR ${sub$}`)
-              // if the result has made it this far, send it along
-              out$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
-              return { ...acc, ...result }
+              //  //console.log(`NO CONDITIONS MET FOR ${sub$}`)
+              //  // if the result has made it this far, send it along
+              //  out$.next({ [CMD_SUB$]: sub$, [CMD_ARGS]: result })
+              //  return { ...acc, ...result }
           }, Promise.resolve({}))
         : (() => {
               throw new Error(task_not_array_error(task_array))

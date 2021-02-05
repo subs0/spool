@@ -362,10 +362,10 @@ describe("process_args", () => {
 
 describe(`pattern_match`, () => {
     test(`1: Errors result in acc = null if no \`${CMD_ERRO}\` is provided`, async () => {
-        //const warned_1 = jest.fn()
-        //jest.spyOn(console, "warn").mockImplementation(warned_1)
+        const warned_1 = jest.fn()
+        jest.spyOn(console, "warn").mockImplementation(warned_1)
 
-        const acc = await pattern_match({}, { [CMD_ARGS]: new Error("bloop") })
+        const acc = await pattern_match({ 2: "b" }, { [CMD_ARGS]: new Error("bloop") })
         expect(acc).toBe(null)
     })
     test(`2: Promises are handled by \`${CMD_RESO}\` if provided and resulting Objects are spread with accumulator`, async () => {
@@ -443,7 +443,23 @@ describe(`multiplex`, () => {
         expect(fn_1.mock.results.length).toBe(0)
         expect(warned_1.mock.calls.length).toBe(7)
     })
+    test(`2: Errors in Tasks shortcircuit the Task`, async () => {
+        const warned_1 = jest.fn()
+        jest.spyOn(console, "warn").mockImplementation(warned_1)
 
+        const O$ = stream()
+        const fn_1 = jest.fn(x => x)
+        O$.subscribe(map(fn_1))
+
+        const spool = multiplex(O$)
+        const Task = [ cmd_s_a_0fn2P_2pri, cmd_s_a_1fn2P_boo, cmd_r_2fn_yay, cmd_e_3fn_err ]
+
+        await spool(Task)
+
+        expect(warned_1.mock.calls.length).toBe(1)
+        expect(fn_1.mock.results.length).toBe(1)
+        expect(fn_1.mock.results[0].value).toMatchObject({ args: 2, sub$: "cmd_s_a_0fn2P_2pri" })
+    })
     test(`2: Basic accumulation with a single dispatch`, async () => {
         const O$ = stream()
         const fn_1 = jest.fn(x => x)
