@@ -66,6 +66,12 @@ ${stringify_fn(C)}
 ${i ? key_index_err(C, i) : ""}
 `
 
+const NA_keys = (c, i) => {
+    const knowns = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO ]
+    const [ unknowns, unknown_kvs ] = diff_keys(knowns, c)
+    return xKeyError(err_str, c, unknown_kvs, i)
+}
+
 // prettier-ignore
 export const keys_match = C => new EquivMap([
     [ [],                                         "NO_ARGS" ],
@@ -128,6 +134,7 @@ export const pattern_match = async (acc, C, out$ = { next: null }, i = null) => 
     //args: ${args}
     //`)
 
+
     const __R = K_M.includes("R") && C[CMD_RESO](acc, args) 
     const __C = { ...C, [CMD_ARGS]: args }
     const __A = args_type === "OBJECT" && { ...acc, ...args }
@@ -135,6 +142,7 @@ export const pattern_match = async (acc, C, out$ = { next: null }, i = null) => 
 
     // equivalent matches are returned in LIFO order -> add least least restrictive cases first ⬇
     let result = new EquivMap([ 
+        [ { K_M,                                 args_type: "UNKNOWN"   },() => (console.warn(NA_keys(C, i), null)) ],
         [ { K_M,                                 args_type: "OBJECT"    },() => __A ],
         [ { K_M: "AE",                           args_type: "OBJECT"    },() => __A ],
         // if primitive and no topic key -> warn and return acc
