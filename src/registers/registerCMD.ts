@@ -130,12 +130,12 @@ export const registerCMD = (command: Command = null) => {
         sub$,
         {
             next: x => {
-                log$.next(CMD_s) // send every Command to log$ stream
-                return work(x) // execute side-effects, etc.
+                log$.next(x) // send every Command to log$ stream
+                return work(x[CMD_ARGS]) // execute side-effects, etc.
             },
             error: console.warn
-        }, // pluck the args from the incoming Command
-        map(x => x[CMD_ARGS])
+        } // pluck the args from the incoming Command
+        //map(x => x[CMD_ARGS])
     )
 
     return CMD

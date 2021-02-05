@@ -311,8 +311,8 @@ export const multiplex = out$ => task_array =>
  */
 export const run$: PubSub<any, any> = pubsub({
     topic: x => !!x[CMD_ARGS],
-    id: "run$_stream",
-    equiv: (res, tpc) => res === tpc || tpc == "_TRACE_STREAM"
+    id: "run$_stream"
+    //equiv: (res, tpc) => res === tpc
 })
 
 /**
@@ -321,8 +321,8 @@ export const run$: PubSub<any, any> = pubsub({
  */
 export const out$: PubSub<any, any> = pubsub({
     topic: x => x[CMD_SUB$],
-    id: "out$_stream",
-    equiv: (res, tpc) => res === tpc || tpc == "_TRACE_STREAM"
+    id: "out$_stream"
+    //equiv: (res, tpc) => res === tpc
 })
 
 /**
