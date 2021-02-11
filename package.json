@@ -10,10 +10,10 @@
     "repository": "https://github.com/subs0/spool",
     "homepage": "https://github.com/subs0/spool",
     "scripts": {
-        "typewatch": "tsc --project tsconfig.json",
-        "types": "tsc --project tsconfig.build.json",
         "madge": "madge --circular lib/",
-        "tests": "npm run madge && concurrently \"npm run typewatch\" \"jest --watchAll\"",
+        "types": "tsc --project tsconfig.build.json",
+        "typewatch": "tsc --project tsconfig.json",
+        "test": "npm run madge && concurrently \"npm run typewatch\" \"jest --watchAll\"",
         "jsdoc": "jsdoc -c jsdoc/jsdoc.json --verbose --debug",
         "pages": "gh-pages -d @-0/spool",
         "docs": "npm run types && npm run jsdoc",
@@ -22,11 +22,7 @@
         "ncu": "ncu -u && npm i && npm audit fix",
         "git": "git add . && git commit -m"
     },
-    "keywords": [
-        "thi.ng",
-        "multiplex",
-        "FRP"
-    ],
+    "keywords": [ "thi.ng", "multiplex", "FRP" ],
     "publishConfig": {
         "access": "public"
     },
