@@ -73,6 +73,24 @@ const NA_keys = (c, i) => {
 }
 
 // prettier-ignore
+/**
+ * Uses a `thi.ng/associative` `EquivMap` as
+ * pattern-matcher. Takes a Command and returns a label of
+ * the properties and high-level functionality of the
+ * Command
+ *
+ * @example
+ * keys_match({ sub$: "a" }) 
+ * //=> "NO_ARGS"
+ *
+ * @example
+ * keys_match({ args: 1 }) 
+ * //=> "A"
+ *
+ * @example
+ * keys_match({ sub$: "a", args: 1 }) 
+ * //=> "AS"
+ */
 export const keys_match = C => new EquivMap([
     [ [],                                         "NO_ARGS" ],
     [ [ CMD_SUB$ ],                               "NO_ARGS" ],
@@ -82,24 +100,41 @@ export const keys_match = C => new EquivMap([
     [ [ CMD_ERRO, CMD_SUB$ ],                     "NO_ARGS" ],
     [ [ CMD_ERRO, CMD_RESO ],                     "NO_ARGS" ],
     [ [ CMD_ERRO, CMD_RESO, CMD_SUB$ ],           "NO_ARGS" ],
-    [ [ CMD_ARGS ],                               "A" ],
-    [ [ CMD_ARGS, CMD_ERRO ],                     "AE" ],
-    [ [ CMD_ARGS, CMD_RESO ],                     "AR" ],
-    [ [ CMD_ARGS, CMD_SUB$ ],                     "AS" ],
-    [ [ CMD_ARGS, CMD_ERRO, CMD_SUB$ ],           "AES" ],
-    [ [ CMD_ARGS, CMD_ERRO, CMD_RESO ],           "AER" ],
-    [ [ CMD_ARGS, CMD_RESO, CMD_SUB$ ],           "ARS" ],
-    [ [ CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SUB$ ], "AERS" ]
+    [ [ CMD_ARGS ],                               "A"       ],
+    [ [ CMD_ARGS, CMD_ERRO ],                     "AE"      ],
+    [ [ CMD_ARGS, CMD_RESO ],                     "AR"      ],
+    [ [ CMD_ARGS, CMD_SUB$ ],                     "AS"      ],
+    [ [ CMD_ARGS, CMD_ERRO, CMD_SUB$ ],           "AES"     ],
+    [ [ CMD_ARGS, CMD_ERRO, CMD_RESO ],           "AER"     ],
+    [ [ CMD_ARGS, CMD_RESO, CMD_SUB$ ],           "ARS"     ],
+    [ [ CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SUB$ ], "AERS"    ]
 ]).get(Object.keys(C).sort()) || "UNKNOWN"
 
 // prettier-ignore
-// recursive function that resolves all non static values
+/**
+ * recursive function that resolves any non-static Command
+ * arguments and returns the resolved type (as a String) and
+ * the value.
+ *
+ * @example
+ * processArgs({ x: 1 }, ({ x }) => ({ y: x })) 
+ * //=> { args_type: "OBJECT", args: { y: 1 } }
+ *
+ * @example
+ * processArgs({}, true) 
+ * //=> { args_type: "PRIMITIVE", args: true }
+ *
+ * @example
+ * processArgs({}, ({ x }) => ({ a: x + 1 }))
+ * //=> { args_type: "ERROR", args: { Error: "Cannot destructure x..." } }
+ */
+
 export const processArgs = async (acc, args) => {
     const args_type = stringify_type(args)
     switch (args_type) {
         case "PRIMITIVE": case "OBJECT": case "ERROR": case "ARRAY":
             return { args_type, args }
-        case "N-ARY": case "BINARY":
+        case "BINARY": case "N-ARY":
             console.warn(`${CMD_ARGS} function arity !== 1: ${stringify_fn(args)}`)
         case "UNARY":
             return await processArgs(acc, args(acc))
@@ -115,10 +150,44 @@ export const processArgs = async (acc, args) => {
 
 // prettier-ignore
 /**
+ *
+ * Uses a `thi.ng/associative` `EquivMap` as core pattern-
+ * matching algorithm. Depending on both the high-level
+ * apparent properties of a Command Object (within a Task)
+ * and the type of `args` property value, a different set of
+ * functionality is triggered. If the Command has downstream
+ * side-effect handlers registered, they will be triggered
+ * before returning. The return value from this function is
+ * used to set the accumulator value in every cycle of the
+ * `multiplex` function. 
+ *
  * @example
- * acc = await pattern_match(acc, { args: { a: 1 } }, out$)
+ * import { stream, trace } from "@thi.ng/rstream"
+ * import { registerCMD } from "../src/registers"
+ * const args = ({ x }) =>  
+ *
+ * const do_it = {
+ *    sub$: "do_it",
+ *    args: ({ x }) => x
+ *    work: x => console.log(`did it${x}`)
+ * }
+ * const DO_IT = registerCMD(do_it)
+ *
+ * const test = await pattern_match({ x: "!" }, DO_IT)
+ * test //=> 
+ * // did it!
  */
-export const handlePattern = async (acc, C, out$ = { next: null }, i = null) => {
+export const handlePattern = async (
+    acc = {}, 
+    C = { 
+        [CMD_SUB$]: undefined, 
+        [CMD_ARGS]: undefined, 
+        [CMD_RESO]: undefined, 
+        [CMD_ERRO]: undefined, 
+    }, 
+    O$ = out$, 
+    i = 0
+) => {
     if (acc === null) return null
     const K_M = keys_match(C)
     if (K_M === "NO_ARGS") {
@@ -127,12 +196,6 @@ export const handlePattern = async (acc, C, out$ = { next: null }, i = null) => 
     }
     const _args = C[CMD_ARGS]
     const { args_type, args } = await processArgs(acc, _args)
-
-    //console.log(`
-    //K_M: ${K_M}
-    //args_type: ${args_type}
-    //args: ${args}
-    //`)
 
     const __R = K_M.includes("R") && C[CMD_RESO](acc, args) 
     const __C = { ...C, [CMD_ARGS]: args }
@@ -144,18 +207,27 @@ export const handlePattern = async (acc, C, out$ = { next: null }, i = null) => 
         [ { K_M,                                 args_type: "UNKNOWN"   },() => (console.warn(NA_keys(C, i)), null) ],
         [ { K_M,                                 args_type: "OBJECT"    },() => __A ],
         [ { K_M: `${!K_M.includes("S") && K_M}`, args_type: "PRIMITIVE" },() => (console.warn(noSubEr(__C, i)), acc) ],
-        [ { K_M: `${K_M.includes("S") && K_M}`,  args_type: "PRIMITIVE" },() => (out$.next(__C), acc) ],
-        [ { K_M: `${K_M.includes("S") && K_M}`,  args_type: "OBJECT"    },() => (out$.next(__C), __A) ],
+        [ { K_M: `${K_M.includes("S") && K_M}`,  args_type: "PRIMITIVE" },() => (O$.next(__C), acc) ],
+        [ { K_M: `${K_M.includes("S") && K_M}`,  args_type: "OBJECT"    },() => (O$.next(__C), __A) ],
         [ { K_M: `${K_M.includes("R") && K_M}`,  args_type              },() => __RA ],
-        [ { K_M: `${K_M.includes("RS") && K_M}`, args_type              },() => (out$.next(__R), __RA) ],
+        [ { K_M: `${K_M.includes("RS") && K_M}`, args_type              },() => (O$.next(__R), __RA) ],
         [ { K_M,                                 args_type: "ERROR"     },() => (console.warn(noEroEr(__C, i)), null) ],
-        [ { K_M: `${K_M.includes("E") && K_M}`,  args_type: "ERROR"     },() => C[CMD_ERRO](acc, args, out$) ]
+        [ { K_M: `${K_M.includes("E") && K_M}`,  args_type: "ERROR"     },() => C[CMD_ERRO](acc, args, O$) ]
     ]).get({ K_M, args_type }) || null
 
     return result && result()
 }
 
 /**
+ *
+ * Core algorithm and Task dispatcher. This recursive
+ * reducing function will pass an inter-Task accumulator
+ * between Commands to hydrate prerequisite data from any
+ * asynchronous functions within the Task and dispatch
+ * resolved Commands to their respective side-effecting
+ * handlers registered during `registerCMD`. Thus:
+ * side-effects will be dispatched _in order_ with any
+ * asynchronous dependencies resolved prior to dispatch.
  *
  * Handles Collections (array) of Commands ("Tasks") which
  * require _ordered_ choreography and/or have a dependency

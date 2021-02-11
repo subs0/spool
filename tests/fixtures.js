@@ -9,7 +9,7 @@ export const log = console.log
 export const a_null = null
 export const a_prim = 2
 export const a_object = { key: "lorem " }
-export const a_P = x => new Promise((r, e) => setTimeout(() => r(x), 1000))
+export const a_P = x => new Promise((r, e) => setTimeout(() => r(x), 200))
 export const a_async = async x => await a_P(x)
 
 export const reso = (acc, res) => ({ key: acc.key + res })

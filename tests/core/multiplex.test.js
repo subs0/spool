@@ -280,6 +280,12 @@ const cmd_s_a_P2obj_r_2fn_yay_e_3fn_err = {
     [CMD_SUB$] : "cmd_s_a_P2obj_r_2fn_yay_e_3fn_err"
 }
 
+const cmd_unknown = {
+    na_key     : "val",
+    ...cmd.a_P2obj,
+    [CMD_SUB$] : "cmd_unknown"
+}
+
 /** 
  * Consider instead of thunk being ad-hoc stream:
  * - all function args are resolved with acc (1st parameter)
@@ -293,65 +299,118 @@ const cmd_s_a_P2obj_r_2fn_yay_e_3fn_err = {
 
 // prettier-ignore
 describe("pattern_keys", () => {
-    test(`1: { } => "NO_ARGS"`,                                                  () => expect(keys_match({}))                                   .toBe("NO_ARGS"))
-    test(`2: { ${CMD_SUB$} } => "NO_ARGS"`,                                      () => expect(keys_match(cmd_s))                                .toBe("NO_ARGS"))
-    test(`3: { ${CMD_RESO} } => "NO_ARGS"`,                                      () => expect(keys_match(cmd_r_2fn_yay))                        .toBe("NO_ARGS"))
-    test(`4: { ${CMD_ERRO} } => "NO_ARGS"`,                                      () => expect(keys_match(cmd_e_3fn_err))                        .toBe("NO_ARGS"))
-    test(`5: { ${CMD_SUB$}, ${CMD_RESO} } => "NO_ARGS"`,                         () => expect(keys_match(cmd_s_r_2fn_yay))                      .toBe("NO_ARGS"))
-    test(`6: { ${CMD_SUB$}, ${CMD_ERRO} } => "NO_ARGS"`,                         () => expect(keys_match(cmd_s_e_3fn_err))                      .toBe("NO_ARGS"))
-    test(`7: { ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,                         () => expect(keys_match(cmd_r_2fn_yay_e_3fn_err))              .toBe("NO_ARGS"))
-    test(`8: { ${CMD_SUB$}, ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,            () => expect(keys_match(cmd_s_r_2fn_yay_e_3fn_err))            .toBe("NO_ARGS"))
-    test(`9: { ${CMD_ARGS} } => "A"`,                                            () => expect(keys_match(cmd_a_null))                           .toBe("A"))
-    test(`10: { ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_obj))                            .toBe("A"))
-    test(`11: { ${CMD_ARGS} } => "A"`,                                           () => expect(keys_match(cmd_a_prim))                           .toBe("A"))
-    test(`12: { ${CMD_SUB$}, ${CMD_ARGS} } => "AS"`,                             () => expect(keys_match(cmd_s_a_0fn2P_2pri))                   .toBe("AS"))
-    test(`13: { ${CMD_SUB$}, ${CMD_ARGS} } => "AS"`,                             () => expect(keys_match(cmd_s_a_1fn2P_2obj))                   .toBe("AS"))
-    test(`14: { ${CMD_SUB$}, ${CMD_ARGS} } => "AS"`,                             () => expect(keys_match(cmd_s_a_1fn2P_boo))                    .toBe("AS"))
-    test(`15: { ${CMD_ARGS}, ${CMD_ERRO} } => "AE"`,                             () => expect(keys_match(cmd_a_1fn2P_boo_e_3fn_err))            .toBe("AE"))
-    test(`16: { ${CMD_ARGS}, ${CMD_RESO} } => "AR"`,                             () => expect(keys_match(cmd_a_0fn2P_2pri_r_2fn_yay))           .toBe("AR"))
-    test(`17: { ${CMD_ARGS}, ${CMD_RESO} } => "AR"`,                             () => expect(keys_match(cmd_a_1fn2P_2obj_r_2fn_yay))           .toBe("AR"))
-    test(`18: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_ERRO} } => "AES"`,               () => expect(keys_match(cmd_s_a_1fn2P_boo_e_3fn_err))          .toBe("AES"))
-    test(`19: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "ARS"`,               () => expect(keys_match(cmd_s_a_1fn2P_boo_r_2fn_yay))          .toBe("ARS"))
-    test(`20: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "ARS"`,               () => expect(keys_match(cmd_s_a_0fn2P_2pri_r_2fn_yay))         .toBe("ARS"))
-    test(`21: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "ARS"`,               () => expect(keys_match(cmd_s_a_1fn2P_2obj_r_2fn_yay))         .toBe("ARS"))
-    test(`22: { ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AER"`,               () => expect(keys_match(cmd_a_1fn2P_boo_r_2fn_yay_e_3fn_err))  .toBe("AER"))
-    test(`23: { ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AER"`,               () => expect(keys_match(cmd_a_1fn2P_2obj_r_2fn_yay_e_3fn_err)) .toBe("AER"))
-    test(`24: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AERS"`, () => expect(keys_match(cmd_s_a_P2obj_r_2fn_yay_e_3fn_err))    .toBe("AERS"))
-    test(`25: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AERS"`, () => expect(keys_match(cmd_s_a_1fn2P_boo_r_2fn_yay_e_3fn_err)).toBe("AERS"))
+    test(`1: { } => "NO_ARGS"`,                                                  () => expect(
+        keys_match({}))                                                          .toBe("NO_ARGS")
+    )
+    test(`2: { ${CMD_SUB$} } => "NO_ARGS"`,                                      () => expect(
+        keys_match(cmd_s))                                                       .toBe("NO_ARGS")
+    )
+    test(`3: { ${CMD_RESO} } => "NO_ARGS"`,                                      () => expect(
+        keys_match(cmd_r_2fn_yay))                                               .toBe("NO_ARGS")
+    )
+    test(`4: { ${CMD_ERRO} } => "NO_ARGS"`,                                      () => expect(
+        keys_match(cmd_e_3fn_err))                                               .toBe("NO_ARGS")
+    )
+    test(`5: { ${CMD_SUB$}, ${CMD_RESO} } => "NO_ARGS"`,                         () => expect(
+        keys_match(cmd_s_r_2fn_yay))                                             .toBe("NO_ARGS")
+    )
+    test(`6: { ${CMD_SUB$}, ${CMD_ERRO} } => "NO_ARGS"`,                         () => expect(
+        keys_match(cmd_s_e_3fn_err))                                             .toBe("NO_ARGS")
+    )
+    test(`7: { ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,                         () => expect(
+        keys_match(cmd_r_2fn_yay_e_3fn_err))                                     .toBe("NO_ARGS")
+    )
+    test(`8: { ${CMD_SUB$}, ${CMD_RESO}, ${CMD_ERRO} } => "NO_ARGS"`,            () => expect(
+        keys_match(cmd_s_r_2fn_yay_e_3fn_err))                                   .toBe("NO_ARGS")
+    )
+    test(`2: { unknown } => "UNKNOWN"`,                                          () => expect(
+        keys_match(cmd_unknown))                                                 .toBe("UNKNOWN")
+    )
+    test(`9: { ${CMD_ARGS} } => "A"`,                                            () => expect(
+        keys_match(cmd_a_null))                                                  .toBe("A")
+    )
+    test(`10: { ${CMD_ARGS} } => "A"`,                                           () => expect(
+        keys_match(cmd_a_obj))                                                   .toBe("A")
+    )
+    test(`11: { ${CMD_ARGS} } => "A"`,                                           () => expect(
+        keys_match(cmd_a_prim))                                                  .toBe("A")
+    )
+    test(`12: { ${CMD_SUB$}, ${CMD_ARGS} } => "AS"`,                             () => expect(
+        keys_match(cmd_s_a_0fn2P_2pri))                                          .toBe("AS")
+    )
+    test(`13: { ${CMD_SUB$}, ${CMD_ARGS} } => "AS"`,                             () => expect(
+        keys_match(cmd_s_a_1fn2P_2obj))                                          .toBe("AS")
+    )
+    test(`14: { ${CMD_SUB$}, ${CMD_ARGS} } => "AS"`,                             () => expect(
+        keys_match(cmd_s_a_1fn2P_boo))                                           .toBe("AS")
+    )
+    test(`15: { ${CMD_ARGS}, ${CMD_ERRO} } => "AE"`,                             () => expect(
+        keys_match(cmd_a_1fn2P_boo_e_3fn_err))                                   .toBe("AE")
+    )
+    test(`16: { ${CMD_ARGS}, ${CMD_RESO} } => "AR"`,                             () => expect(
+        keys_match(cmd_a_0fn2P_2pri_r_2fn_yay))                                  .toBe("AR")
+    )
+    test(`17: { ${CMD_ARGS}, ${CMD_RESO} } => "AR"`,                             () => expect(
+        keys_match(cmd_a_1fn2P_2obj_r_2fn_yay))                                  .toBe("AR")
+    )
+    test(`18: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_ERRO} } => "AES"`,               () => expect(
+        keys_match(cmd_s_a_1fn2P_boo_e_3fn_err))                                 .toBe("AES")
+    )
+    test(`19: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "ARS"`,               () => expect(
+        keys_match(cmd_s_a_1fn2P_boo_r_2fn_yay))                                 .toBe("ARS")
+    )
+    test(`20: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "ARS"`,               () => expect(
+        keys_match(cmd_s_a_0fn2P_2pri_r_2fn_yay))                                .toBe("ARS")
+    )
+    test(`21: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO} } => "ARS"`,               () => expect(
+        keys_match(cmd_s_a_1fn2P_2obj_r_2fn_yay))                                .toBe("ARS")
+    )
+    test(`22: { ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AER"`,               () => expect(
+        keys_match(cmd_a_1fn2P_boo_r_2fn_yay_e_3fn_err))                         .toBe("AER")
+    )
+    test(`23: { ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AER"`,               () => expect(
+        keys_match(cmd_a_1fn2P_2obj_r_2fn_yay_e_3fn_err))                        .toBe("AER")
+    )
+    test(`24: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AERS"`, () => expect(
+        keys_match(cmd_s_a_P2obj_r_2fn_yay_e_3fn_err))                           .toBe("AERS")
+    )
+    test(`25: { ${CMD_SUB$}, ${CMD_ARGS}, ${CMD_RESO}, ${CMD_ERRO} } => "AERS"`, () => expect(
+        keys_match(cmd_s_a_1fn2P_boo_r_2fn_yay_e_3fn_err))                       .toBe("AERS")
+    )
 })
 
 // prettier-ignore
 describe("processArgs", () => {
-    test(`1: Objects`, async () => 
-        expect(await processArgs({}, { mad: "world" }))
-        .toMatchObject({ args_type: "OBJECT", args: { mad: "world" } }))
-    test(`2: Error Objects`, async () => 
-        expect(await processArgs({}, new Error("shoot")))
-        .toMatchObject({ args_type: "ERROR", args: Error("shoot") }))
-    test(`3: Arrays`, async () => 
-        expect(await processArgs({}, [ "a", "b" ]))
-        .toMatchObject({ args_type: "ARRAY", args: [ "a", "b" ] }))
-    test(`4: Promises`, async () => 
-        expect(await processArgs({}, Promise.resolve(true)))
-        .toMatchObject({ args_type: "PRIMITIVE", args: true }))
-    test(`5: Nullary Function`, async () => 
-        expect(await processArgs({}, () => ({ a: 1 })))
-        .toMatchObject({ args_type: "OBJECT", args: { a: 1 } }))
-    test(`6: new Promises`, async () => 
-        expect(await processArgs({}, new Promise(res => res(true))))
-        .toMatchObject({ args_type : "PRIMITIVE", args: true }))
-    test(`7: Unary Functions`, async () => 
-        expect(await processArgs({ a: 1 }, ({ a }) => ({ a: a + 1 })))
-        .toMatchObject({ args_type : "OBJECT", args: { a: 2 } }))
-    test(`8: a => Promise`, async () => 
-        expect(await processArgs({ a: "to" }, ({ a }) => new Promise(r => r(a + "do"))))
-        .toMatchObject({ args_type : "PRIMITIVE", args: "todo" }))
-    test(`9: a => Object`, async () => 
-        expect(await processArgs({ a: "to" }, ({ a }) => ({ a: a + "do" })))
-        .toMatchObject({ args_type : "OBJECT", args: { a: "todo" } }))
-    test(`10: async a => Promise => Object`, async () => 
-        expect(await processArgs({ a: "to" }, a => a_async(a)))
-        .toMatchObject({ args_type : "OBJECT", args: { a: "to" } }))
+    test(`1: Objects`,                       async () => expect(
+        await processArgs({}, { mad: "world" }))                                 .toMatchObject({ args_type: "OBJECT", args: { mad: "world" } })
+    )
+    test(`2: Error Objects`,                 async () => expect(
+        await processArgs({}, new Error("shoot")))                               .toMatchObject({ args_type: "ERROR", args: Error("shoot") })
+    )
+    test(`3: Arrays`,                        async () => expect(
+        await processArgs({}, [ "a", "b" ]))                                     .toMatchObject({ args_type: "ARRAY", args: [ "a", "b" ] })
+    )
+    test(`4: Promises`,                      async () => expect(
+        await processArgs({}, Promise.resolve(true)))                            .toMatchObject({ args_type: "PRIMITIVE", args: true })
+    )
+    test(`5: Nullary Function`,              async () => expect(
+        await processArgs({}, () => ({ a: 1 })))                                 .toMatchObject({ args_type: "OBJECT", args: { a: 1 } })
+    )
+    test(`6: new Promises`,                  async () => expect(
+        await processArgs({}, new Promise(res => res(true))))                    .toMatchObject({ args_type : "PRIMITIVE", args: true })
+    )
+    test(`7: Unary Functions`,               async () => expect(
+        await processArgs({ a: 1 }, ({ a }) => ({ a: a + 1 })))                  .toMatchObject({ args_type : "OBJECT", args: { a: 2 } })
+    )
+    test(`8: a => Promise`,                  async () => expect(
+        await processArgs({ a: "to" }, ({ a }) => new Promise(r => r(a + "do")))).toMatchObject({ args_type : "PRIMITIVE", args: "todo" })
+    )
+    test(`9: a => Object`,                   async () => expect(
+        await processArgs({ a: "to" }, ({ a }) => ({ a: a + "do" })))            .toMatchObject({ args_type : "OBJECT", args: { a: "todo" } })
+    )
+    test(`10: async a => Promise => Object`, async () => expect(
+        await processArgs({ a: "to" }, a => a_async(a)))                         .toMatchObject({ args_type : "OBJECT", args: { a: "to" } })
+    )
 })
 
 const acc_init = { key: "bloop" }
@@ -364,7 +423,7 @@ describe(`handlePattern`, () => {
         expect(acc).toBe(null)
         expect(warned_1.mock.calls.length).toBe(1)
     })
-    test(`2: Promises are handled by \`${CMD_RESO}\` if provided and resulting Objects are spread with accumulator`, async () => {
+    test(`2: Promises are handled by \`${CMD_RESO}\`. Objects are spread with accumulator`, async () => {
         const acc = await handlePattern({ key: "bloop" }, cmd_a_1fn2P_2obj_r_2fn_yay)
         expect(acc).toMatchObject({ key: "bloop -> a_1fn2P_2obj -> r_2fn_yay" })
     })
@@ -386,7 +445,7 @@ describe(`handlePattern`, () => {
         expect(warned_1.mock.calls.length).toBe(1)
         expect(acc).toBe(null)
     })
-    test(`6: Commands with a \`${CMD_SUB$}\` that result in a Primitive are dispatched, don't effect accumulator`, async () => {
+    test(`6: \`${CMD_SUB$}\` w/Primitive results are dispatched, don't effect accumulator`, async () => {
         const O$ = stream()
         const fn_1 = jest.fn(x => x)
         O$.subscribe(map(fn_1))

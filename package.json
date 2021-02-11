@@ -22,11 +22,7 @@
         "ncu": "ncu -u && npm i && npm audit fix",
         "git": "git add . && git commit -m"
     },
-    "keywords": [
-        "thi.ng",
-        "multiplex",
-        "FRP"
-    ],
+    "keywords": [ "thi.ng", "multiplex", "FRP" ],
     "publishConfig": {
         "access": "public"
     },
@@ -67,9 +63,10 @@
     },
     "prettier": {
         "singleQuote": false,
-        "printWidth": 100,
+        "printWidth": 120,
         "endOfLine": "lf",
-        "tabWidth": 2,
-        "semi": false
+        "tabWidth": 4,
+        "semi": false,
+        "arrowParens": "avoid"
     }
 }

@@ -25,7 +25,7 @@ export const log$: Subscription<any, any> = stream()
  * push values into the command stream and trigger the work
  * registered.
  */
-export const upstreamCMDInject$: any = (cmd: Command, downstream: ISubscribable<any>) => {
+export const forwardUpstreamCMD$: any = (cmd: Command, downstream: ISubscribable<any>) => {
     const upstream: ISubscribable<any> = cmd[CMD_SRC$]
     const sub$ = cmd[CMD_SUB$]
     const args = cmd[CMD_ARGS]
@@ -105,7 +105,7 @@ export const registerCMD = (command: Command = null) => {
         throw new Error(xKeyError(err_str, command, unknowns, undefined))
     }
 
-    if (src$) upstreamCMDInject$(command, out$)
+    if (src$) forwardUpstreamCMD$(command, out$)
 
     const CMD = reso
         ? {
