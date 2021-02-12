@@ -17,16 +17,12 @@
         "jsdoc": "jsdoc -c jsdoc/jsdoc.json --verbose --debug",
         "pages": "gh-pages -d @-0/spool",
         "docs": "npm run types && npm run jsdoc",
-        "patch": "npm version patch && npm run docs && npm run pages && npm publish",
+        "patch": "npm version patch && npm publish",
         "postgit": "git push origin master && npm run patch",
         "ncu": "ncu -u && npm i && npm audit fix",
         "git": "git add . && git commit -m"
     },
-    "keywords": [
-        "thi.ng",
-        "multiplex",
-        "FRP"
-    ],
+    "keywords": [ "thi.ng", "multiplex", "FRP" ],
     "publishConfig": {
         "access": "public"
     },
