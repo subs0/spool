@@ -22,7 +22,11 @@
         "ncu": "ncu -u && npm i && npm audit fix",
         "git": "git add . && git commit -m"
     },
-    "keywords": [ "thi.ng", "multiplex", "FRP" ],
+    "keywords": [
+        "thi.ng",
+        "multiplex",
+        "FRP"
+    ],
     "publishConfig": {
         "access": "public"
     },
@@ -36,8 +40,8 @@
         "@thi.ng/rstream": "^5.1.0"
     },
     "dependencies": {
-        "@-0/keys": "^0.2.96",
-        "@-0/utils": "^0.2.96"
+        "@-0/keys": "^0.2.100",
+        "@-0/utils": "^0.2.97"
     },
     "devDependencies": {
         "@babel/plugin-transform-modules-commonjs": "^7.12.13",
@@ -49,7 +53,7 @@
         "@thi.ng/transducers": "^7.5.8",
         "@thi.ng/rstream": "^5.1.0",
         "@types/jest": "^26.0.20",
-        "@types/node": "^14.14.26",
+        "@types/node": "^14.14.27",
         "@typescript-eslint/eslint-plugin": "^4.15.0",
         "@typescript-eslint/parser": "^4.15.0",
         "babel-jest": "^26.6.3",
