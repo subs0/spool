@@ -7,7 +7,7 @@ import { isFunction } from "@thi.ng/checks"
 import { ISubscribable, Subscription, stream } from "@thi.ng/rstream"
 
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, Command } from "@-0/keys"
-import { xKeyError, diff_keys, stringify_fn } from "@-0/utils"
+import { xKeyError, diff_keys, stringify_fn, get_param_names } from "@-0/utils"
 
 import { out$ } from "../core"
 
@@ -97,13 +97,15 @@ export const registerCMD = (command: Command = null) => {
         throw new Error(no_work_or_src_error)
     }
 
-    const knowns = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK ]
-    const [ unknowns ] = diff_keys(knowns, command)
-    // console.log({ knowns, unknowns })
+    const known_CMD_props = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK ]
+    const [ unknown_CMD_props ] = diff_keys(known_CMD_props, command)
+    // console.log({ known_CMD_props, unknown_CMD_props })
 
-    if (unknowns.length > 0) {
-        throw new Error(xKeyError(err_str, command, unknowns, undefined))
+    if (unknown_CMD_props.length > 0) {
+        throw new Error(xKeyError(err_str, command, unknown_CMD_props, undefined))
     }
+
+    const arg_params = get_param_names(args)
 
     if (src$) forwardUpstreamCMD$(command, out$)
 
