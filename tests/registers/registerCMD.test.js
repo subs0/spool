@@ -23,7 +23,10 @@ describe(`registerCMD:`, () => {
         })
     })
     test(`2: run$'ing a Command triggers \`${CMD_WORK}\` side-effect handler`, async () => {
-        const cb = jest.fn(({ fire }) => ({ rocket: fire + "🚀" }))
+        const relay = jest.fn(x => x)
+        const cb = ({ fire }) => {
+            relay({ rocket: fire + "🚀" })
+        }
 
         const TEST2 = registerCMD({
             [CMD_SUB$] : "TEST2",
@@ -33,45 +36,48 @@ describe(`registerCMD:`, () => {
 
         await run$.next(TEST2)
 
-        expect(cb.mock.results.length).toBe(1)
-        expect(cb.mock.results[0].value).toMatchObject({ rocket: "🔥🚀" })
+        expect(relay.mock.results.length).toBe(1)
+        expect(relay.mock.results[0].value).toMatchObject({ rocket: "🔥🚀" })
     })
     test(`3: Upstream \`${CMD_SRC$}\` injection triggers side-effect handler`, async () => {
         const s$ = stream()
-        const cb = jest.fn(({ fire }) => ({ rocket: fire + "🚀" }))
+        const relay = jest.fn(x => x)
+        const cb = ({ fire }) => {
+            relay({ rocket: fire + "🚀" })
+        }
 
-        const TEST2 = registerCMD({
+        const TEST3 = registerCMD({
             [CMD_SUB$] : "TEST3",
             [CMD_ARGS] : args,
             [CMD_WORK] : cb,
             [CMD_SRC$] : s$
         })
 
-        await s$.next(TEST2)
+        await s$.next(TEST3)
 
-        expect(cb.mock.results.length).toBe(1)
-        expect(cb.mock.results[0].value).toMatchObject({ rocket: "🔥🚀" })
+        expect(relay.mock.results.length).toBe(1)
+        expect(relay.mock.results[0].value).toMatchObject({ rocket: "🔥🚀" })
     })
     test(`4: Attempting to register a Command with unknown key(s) throw Error`, async () => {
         const cb = jest.fn(({ fire }) => ({ rocket: fire + "🚀" }))
 
-        const TEST2 = () =>
+        const TEST4 = () =>
             registerCMD({
-                [CMD_SUB$] : "TEST3",
+                [CMD_SUB$] : "TEST4",
                 [CMD_ARGS] : args,
                 [CMD_WORK] : cb,
                 unknownKey : "breaks stuff"
             })
 
-        expect(TEST2).toThrow(Error)
+        expect(TEST4).toThrow(Error)
     })
     test(`5: registering without \`${CMD_WORK}\` && \`${CMD_SRC$}\` keys throws Error`, async () => {
-        const TEST2 = () =>
+        const TEST5 = () =>
             registerCMD({
-                [CMD_SUB$] : "TEST3",
+                [CMD_SUB$] : "TEST5",
                 [CMD_ARGS] : args
             })
 
-        expect(TEST2).toThrow(Error)
+        expect(TEST5).toThrow(Error)
     })
 })
