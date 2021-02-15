@@ -109,19 +109,19 @@ export const registerCMD = (command: Command = null) => {
     const sans_src = { ...command, [CMD_SRC$]: undefined }
 
     const work_params = get_param_names(work, sans_src)
-    const param_warn = work_params.length
+    const param_warning = work_params.length
         ? args => {
               const args_params = Object.keys(args)
               let missing = work_params.reduce((a, c) => (args_params.some(x => x === c) ? a : a.concat(c)), [])
               if (!missing.length) return
               console.warn(
-                  `Command { \`${CMD_SUB$}\`: '${sub$}' } missing critical argument${missing.length === 1
+                  `Command { \`${CMD_SUB$}\`: '${sub$}' } missing argument${missing.length === 1
                       ? ""
                       : "s"} specified by its \`${CMD_WORK}\` handler: ${missing.map(x => `\`${x}\``)}`
               )
               //  return args_params
           }
-        : null
+        : false
 
     const CMD = reso
         ? {
@@ -137,7 +137,7 @@ export const registerCMD = (command: Command = null) => {
         sub$,
         {
             next: x => {
-                param_warn && param_warn(x[CMD_ARGS]) // <- TODO: test
+                param_warning && param_warning(x[CMD_ARGS])
                 log$.next(x) // send every Command to log$ stream
                 return work(x[CMD_ARGS]) // execute side-effects, etc.
             },
