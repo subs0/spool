@@ -7,7 +7,7 @@ import { isFunction } from "@thi.ng/checks"
 import { ISubscribable, Subscription, stream } from "@thi.ng/rstream"
 
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, Command } from "@-0/keys"
-import { xKeyError, diff_keys, stringify_fn, get_param_names } from "@-0/utils"
+import { xKeyError, diff_keys, stringify_fn } from "@-0/utils"
 
 import { out$ } from "../core"
 
@@ -57,6 +57,21 @@ can/need not be registered:
 if your Command is for data acquisition/transformation, 
 you can run$.next(YOUR_COMMAND) without registration.
 `
+
+const warnOnIncongruentInput = (work_params, sub$) => (args, CMD) => {
+    const args_params = Object.keys(args)
+    let missing = work_params.reduce((a, c) => (args_params.some(x => x === c) ? a : a.concat(c)), [])
+    if (!missing.length) return
+    console.warn(
+        `Command { \`${CMD_SUB$}\`: '${sub$}' } missing argument${missing.length === 1
+            ? ""
+            : "s"} specified by its \`${CMD_WORK}\` handler: ${missing.map(x => `\`${x}\``)}
+
+${stringify_fn(CMD, 2)}
+        `
+    )
+    //  return args_params
+}
 /**
  *
  *
@@ -108,21 +123,6 @@ export const registerCMD = (command: Command = null) => {
 
     const sans_src = { ...command, [CMD_SRC$]: undefined }
 
-    const work_params = get_param_names(work, sans_src)
-    const param_warning = work_params.length
-        ? args => {
-              const args_params = Object.keys(args)
-              let missing = work_params.reduce((a, c) => (args_params.some(x => x === c) ? a : a.concat(c)), [])
-              if (!missing.length) return
-              console.warn(
-                  `Command { \`${CMD_SUB$}\`: '${sub$}' } missing argument${missing.length === 1
-                      ? ""
-                      : "s"} specified by its \`${CMD_WORK}\` handler: ${missing.map(x => `\`${x}\``)}`
-              )
-              //  return args_params
-          }
-        : false
-
     const CMD = reso
         ? {
               [CMD_SUB$]: sub$,
@@ -137,7 +137,6 @@ export const registerCMD = (command: Command = null) => {
         sub$,
         {
             next: x => {
-                param_warning && param_warning(x[CMD_ARGS])
                 log$.next(x) // send every Command to log$ stream
                 return work(x[CMD_ARGS]) // execute side-effects, etc.
             },
