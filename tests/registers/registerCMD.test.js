@@ -80,22 +80,4 @@ describe(`registerCMD:`, () => {
 
         expect(TEST5).toThrow(Error)
     })
-    test(`6: registering a Command with computed destructured properties gives a warning`, async () => {
-        const key = "computed"
-        const relay = jest.fn(x => x)
-        const cb = ({ [key]: fir, launch }) => {
-            relay({ rocket: fir + "🚀" })
-        }
-
-        const TEST6 = registerCMD({
-            [CMD_SUB$] : "TEST6",
-            [CMD_ARGS] : args,
-            [CMD_WORK] : cb
-        })
-
-        await run$.next(TEST6)
-
-        expect(relay.mock.results.length).toBe(1)
-        expect(relay.mock.results[0].value).toMatchObject({ rocket: "🔥🚀" })
-    })
 })
