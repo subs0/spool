@@ -3,7 +3,7 @@
  */
 
 import { isFunction, isPromise, isArray } from "@thi.ng/checks"
-import { pubsub, Subscription, PubSub } from "@thi.ng/rstream"
+import { pubsub, Subscription, PubSub, ISubscription } from "@thi.ng/rstream"
 import { EquivMap } from "@thi.ng/associative"
 
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK } from "@-0/keys"
@@ -404,11 +404,14 @@ export const out$: PubSub<any, any> = pubsub({
  * `topic` function used to alert downstream handlers is a
  * simple lookup of the `sub$` key of the command
  */
-export const cmd$: Subscription<any, any> = run$.subscribeTopic(
+export const cmd$: ISubscription<any, any> = run$.subscribeTopic(
     true,
     {
         next: x => out$.next(x),
-        error: console.warn
+        error: e => {
+            console.warn(e)
+            return true
+        }
     },
     { id: "cmd$_stream" }
 )
@@ -419,11 +422,14 @@ export const cmd$: Subscription<any, any> = run$.subscribeTopic(
  * to `multiplex`er (the heart of `spule`)
  *
  */
-export const task$: Subscription<any, any> = run$.subscribeTopic(
+export const task$: ISubscription<any, any> = run$.subscribeTopic(
     false,
     {
         next: multiplex(out$),
-        error: console.warn
+        error: e => {
+            console.warn(e)
+            return true
+        }
     },
     { id: "task$_stream" }
 )
