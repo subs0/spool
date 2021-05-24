@@ -446,17 +446,17 @@ describe(`handlePattern`, () => {
         expect(acc).toBe(null)
     })
     test(`6: \`${CMD_SUB$}\` w/Primitive results are dispatched, don't effect accumulator`, async () => {
-        const O$ = stream()
+        const O$ = stream({ id: "multiplex/handlePattern/6" })
         const fn_1 = jest.fn(x => x)
-        O$.subscribe(map(fn_1))
+        O$.subscribe({ next: fn_1 })
         const acc = await handlePattern({ key: "bloop" }, cmd_s_a_0fn2P_2pri, O$)
         expect(acc).toMatchObject({ key: "bloop" })
         expect(fn_1.mock.results[0].value).toMatchObject({ [CMD_ARGS]: 2, [CMD_SUB$]: "cmd_s_a_0fn2P_2pri" })
     })
     test(`7: Errors are handled if \`${CMD_ERRO}\` is provided`, async () => {
-        const O$ = stream()
+        const O$ = stream({ id: "multiplex/handlePattern/7" })
         const fn_1 = jest.fn(x => x)
-        O$.subscribe(map(fn_1))
+        O$.subscribe({ next: fn_1 })
         const acc = await handlePattern(
             {},
             { [CMD_ARGS]: new Error("bloop"), [CMD_ERRO]: (A, E, O$) => (O$.next("💩"), null) },
@@ -473,7 +473,7 @@ describe(`multiplex`, () => {
 
         const O$ = stream()
         const fn_1 = jest.fn()
-        O$.subscribe(map(fn_1))
+        O$.subscribe({ next: fn_1 })
 
         const spool = multiplex(O$)
         const Task = [
@@ -496,7 +496,7 @@ describe(`multiplex`, () => {
 
         const O$ = stream()
         const fn_1 = jest.fn(x => x)
-        O$.subscribe(map(fn_1))
+        O$.subscribe({ next: fn_1 })
 
         const spool = multiplex(O$)
         const Task = [ cmd_s_a_0fn2P_2pri, cmd_s_a_1fn2P_boo, cmd_r_2fn_yay, cmd_e_3fn_err ]
@@ -510,7 +510,7 @@ describe(`multiplex`, () => {
     test(`2: Basic accumulation with a single dispatch`, async () => {
         const O$ = stream()
         const fn_1 = jest.fn(x => x)
-        O$.subscribe(map(fn_1))
+        O$.subscribe({ next: fn_1 })
 
         const spool = multiplex(O$)
         const Task = [
@@ -530,7 +530,7 @@ describe(`multiplex`, () => {
     test(`3: Subtask with a single dispatch`, async () => {
         const O$ = stream()
         const fn_1 = jest.fn(x => x)
-        O$.subscribe(map(fn_1))
+        O$.subscribe({ next: fn_1 })
         const spool = multiplex(O$)
 
         const SUBTASK = ({ key }) => [ { [CMD_ARGS]: ({ key }) => ({ key: key + "-> SUBTASK was here!" }) } ]
@@ -555,7 +555,7 @@ describe(`multiplex`, () => {
 
         const O$ = stream()
         const fn_1 = jest.fn(x => x)
-        O$.subscribe(map(fn_1))
+        O$.subscribe({ next: fn_1 })
         const spool = multiplex(O$)
 
         const Task = [

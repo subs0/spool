@@ -4,7 +4,7 @@
 
 import { map } from "@thi.ng/transducers"
 import { isFunction } from "@thi.ng/checks"
-import { ISubscribable, Subscription, stream } from "@thi.ng/rstream"
+import { ISubscribable, Subscription, stream, ISubscription, Stream, PubSub } from "@thi.ng/rstream"
 
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, Command } from "@-0/keys"
 import { xKeyError, diff_keys, stringify_fn } from "@-0/utils"
@@ -25,23 +25,33 @@ export const log$: Subscription<any, any> = stream()
  * push values into the command stream and trigger the work
  * registered.
  */
-export const forwardUpstreamCMD$: any = (cmd: Command, downstream: ISubscribable<any>) => {
-    const upstream: ISubscribable<any> = cmd[CMD_SRC$]
-    const sub$ = cmd[CMD_SUB$]
-    const args = cmd[CMD_ARGS]
+export const forwardUpstreamCMD$ = (command: Command, downstream: PubSub<any>) => {
+    const upstream: Stream<any> = command[CMD_SRC$]
+    const sub$ = command[CMD_SUB$]
+    const args = command[CMD_ARGS]
     const isFn = isFunction(args)
     /**
-     * if the args are a function, construct payload from
-     * args, else use static args
+     * if args is a function, payloads sent from upstream
+     * are thereby transformed. If the arg is static, that
+     * payload will be delivered upon every
+     * upstream.next(<value>) injected regardless of
+     * <value>.
      */
-    const load = (x = null) => ({ [CMD_SUB$]: sub$, [CMD_ARGS]: x ? args(x) : args })
+    const load = (dynamic = false) => ({ [CMD_SUB$]: sub$, [CMD_ARGS]: dynamic ? args(dynamic) : args })
     /**
      * for each emission from upstream source, export it
-     * downstream via
-     * upstream.subscribe(xf.map(x => downstream.next(x)))
+     * downstream 
      */
-    const xport = downstream => map(x => downstream.next(isFn ? load(x) : load()))
-    return upstream.subscribe(xport(downstream))
+    return upstream.subscribe({
+        next: x => {
+            console.log("upstream emission from", sub$, ":", x)
+            downstream.next(isFn ? load(x) : load())
+        },
+        error: e => {
+            console.warn(`error from upstream \`${CMD_SRC$}\`: ${upstream.id}:`, e)
+            return false
+        }
+    })
 }
 
 const err_str = "command Registration `registerCMD`"
@@ -100,7 +110,7 @@ ${stringify_fn(CMD, 2)}
  *  4. `src$` (optional, enables stream to feed Command)
  *
  */
-export const registerCMD = (command: Command = null) => {
+export const registerCMD = (command: Command = null, dev = true) => {
     const sub$ = command[CMD_SUB$]
     const args = command[CMD_ARGS]
     const erro = command[CMD_ERRO]
@@ -119,9 +129,8 @@ export const registerCMD = (command: Command = null) => {
     if (unknown_CMD_props.length > 0) {
         throw new Error(xKeyError(err_str, command, unknown_CMD_props, undefined))
     }
-    if (src$) forwardUpstreamCMD$(command, out$)
 
-    const sans_src = { ...command, [CMD_SRC$]: undefined }
+    if (src$) forwardUpstreamCMD$(command, out$)
 
     const CMD = reso
         ? {
@@ -132,18 +141,16 @@ export const registerCMD = (command: Command = null) => {
           }
         : { [CMD_SUB$]: sub$, [CMD_ARGS]: args }
 
-    // @ts-ignore
-    out$.subscribeTopic(
-        sub$,
-        {
-            next: x => {
-                log$.next(x) // send every Command to log$ stream
-                return work(x[CMD_ARGS]) // execute side-effects, etc.
-            },
-            error: console.warn
-        } // pluck the args from the incoming Command
-        //map(x => x[CMD_ARGS])
-    )
+    out$.subscribeTopic<ISubscription<any, any>>(sub$, {
+        next: x => {
+            if (dev) log$.next(x) // send every Command to log$ stream if in dev mode
+            return work(x[CMD_ARGS]) // execute side-effects, etc.
+        },
+        error: e => {
+            console.warn("error in `out$` stream:", e)
+            return false
+        }
+    })
 
     return CMD
 }

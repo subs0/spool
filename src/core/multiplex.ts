@@ -215,6 +215,8 @@ export const handlePattern = async (
         [ { K_M: `${K_M.includes("E") && K_M}`,  args_type: "ERROR"     },() => C[CMD_ERRO](acc, args, O$) ]
     ]).get({ K_M, args_type }) || null
 
+    //console.log({ [CMD_SUB$]: C[CMD_SUB$], K_M, args_type, result: await result() })
+
     return result && result()
 }
 
@@ -405,12 +407,12 @@ export const out$: PubSub<any, any> = pubsub({
  * simple lookup of the `sub$` key of the command
  */
 export const cmd$: ISubscription<any, any> = run$.subscribeTopic(
-    true,
+    true, // has args
     {
         next: x => out$.next(x),
         error: e => {
-            console.warn(e)
-            return true
+            console.warn("error in `cmd$` stream:", e)
+            return false
         }
     },
     { id: "cmd$_stream" }
@@ -423,12 +425,12 @@ export const cmd$: ISubscription<any, any> = run$.subscribeTopic(
  *
  */
 export const task$: ISubscription<any, any> = run$.subscribeTopic(
-    false,
+    false, // no args = implied to be a collection/array
     {
         next: multiplex(out$),
         error: e => {
-            console.warn(e)
-            return true
+            console.warn("error in `task$` stream:", e)
+            return false
         }
     },
     { id: "task$_stream" }
