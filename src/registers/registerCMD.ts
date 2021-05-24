@@ -44,7 +44,7 @@ export const forwardUpstreamCMD$ = (command: Command, downstream: PubSub<any>) =
      */
     return upstream.subscribe({
         next: x => {
-            console.log("forwardUpstreamCMD$ upstream emission from", sub$, ":", x)
+            //console.log("forwardUpstreamCMD$ upstream emission from", sub$, ":", x)
             downstream.next(isFn ? load(x) : load())
         },
         error: e => {
