@@ -1,8 +1,8 @@
-import { Subscription } from "@thi.ng/rstream";
+import { Subscription, ISubscription, PubSub } from "@thi.ng/rstream";
 import { Command } from "@-0/keys";
 export declare const log$: Subscription<any, any>;
-export declare const forwardUpstreamCMD$: any;
-export declare const registerCMD: (command?: Command) => {
+export declare const forwardUpstreamCMD$: (command: Command, downstream: PubSub<any>) => ISubscription<any, any>;
+export declare const registerCMD: (command?: Command, dev?: boolean) => {
     sub$: any;
     args: any;
     reso: any;
