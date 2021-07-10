@@ -10,7 +10,7 @@ import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK } from "@-0/
 import { stringify_type, xKeyError, key_index_err, diff_keys, stringify_fn } from "@-0/utils"
 import { getIn } from "@thi.ng/paths"
 
-const err_str = "🔥 Multiplex Spooling Interrupted 🔥"
+const err_str = "🔥 Command Dispatch Interrupted 🔥"
 
 const noSubEr = (c, i) => `
 ${err_str}
@@ -148,6 +148,11 @@ export const processArgs = async (acc, args) => {
     }
 }
 
+const work_in_command_error = C => `${CMD_WORK} key found while running a Command
+${stringify_fn(C)}
+Check to make sure you've registered this Command
+using the \`registerCMD\` function
+`
 // prettier-ignore
 /**
  *
@@ -192,6 +197,10 @@ export const handlePattern = async (
     const K_M = keys_match(C)
     if (K_M === "NO_ARGS") {
         console.warn(no_args_error(C, i))
+        return acc
+    }
+    if (C[CMD_WORK]){
+        console.warn(work_in_command_error(C))
         return acc
     }
     const _args = C[CMD_ARGS]
