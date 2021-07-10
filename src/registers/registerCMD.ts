@@ -6,7 +6,7 @@ import { map } from "@thi.ng/transducers"
 import { isFunction } from "@thi.ng/checks"
 import { ISubscribable, Subscription, stream, ISubscription, Stream, PubSub } from "@thi.ng/rstream"
 
-import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, Command } from "@-0/keys"
+import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, Command, ICommand } from "@-0/keys"
 import { xKeyError, diff_keys, stringify_fn } from "@-0/utils"
 
 import { out$ } from "../core"
@@ -110,7 +110,7 @@ ${stringify_fn(CMD, 2)}
  *  4. `src$` (optional, enables stream to feed Command)
  *
  */
-export const registerCMD = (command: Command = null, dev = true) => {
+export const registerCMD = (command: ICommand = null, dev = true) => {
     const sub$ = command[CMD_SUB$]
     const args = command[CMD_ARGS]
     const erro = command[CMD_ERRO]
