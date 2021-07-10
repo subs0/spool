@@ -150,7 +150,7 @@ export const processArgs = async (acc, args) => {
 
 const work_in_command_error = C => `${CMD_WORK} key found while running a Command
 ${stringify_fn(C)}
-Check to make sure you've registered this Command
+Check to make sure you've registered this Command ${C[CMD_SUB$] || ""}
 using the \`registerCMD\` function
 `
 // prettier-ignore
