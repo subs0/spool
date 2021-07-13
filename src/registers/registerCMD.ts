@@ -6,7 +6,16 @@ import { map } from "@thi.ng/transducers"
 import { isFunction } from "@thi.ng/checks"
 import { ISubscribable, Subscription, stream, ISubscription, Stream, PubSub } from "@thi.ng/rstream"
 
-import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, Command, ICommand } from "@-0/keys"
+import {
+    CMD_SUB$,
+    CMD_ARGS,
+    CMD_RESO,
+    CMD_ERRO,
+    CMD_SRC$,
+    CMD_WORK,
+    Command,
+    ICommand,
+} from "@-0/keys"
 import { xKeyError, diff_keys, stringify_fn } from "@-0/utils"
 
 import { out$ } from "../core"
@@ -37,7 +46,10 @@ export const forwardUpstreamCMD$ = (command: Command, downstream: PubSub<any>) =
      * upstream.next(<value>) injected regardless of
      * <value>.
      */
-    const load = (dynamic = false) => ({ [CMD_SUB$]: sub$, [CMD_ARGS]: dynamic ? args(dynamic) : args })
+    const load = (dynamic = false) => ({
+        [CMD_SUB$]: sub$,
+        [CMD_ARGS]: dynamic ? args(dynamic) : args,
+    })
     /**
      * for each emission from upstream source, export it
      * downstream 
@@ -50,7 +62,7 @@ export const forwardUpstreamCMD$ = (command: Command, downstream: PubSub<any>) =
         error: e => {
             console.warn(`error from upstream \`${CMD_SRC$}\`: ${upstream.id}:`, e)
             return false
-        }
+        },
     })
 }
 
@@ -70,7 +82,10 @@ you can run$.next(YOUR_COMMAND) without registration.
 
 const warnOnIncongruentInput = (work_params, sub$) => (args, CMD) => {
     const args_params = Object.keys(args)
-    let missing = work_params.reduce((a, c) => (args_params.some(x => x === c) ? a : a.concat(c)), [])
+    let missing = work_params.reduce(
+        (a, c) => (args_params.some(x => x === c) ? a : a.concat(c)),
+        [],
+    )
     if (!missing.length) return
     console.warn(
         `Command { \`${CMD_SUB$}\`: '${sub$}' } missing argument${missing.length === 1
@@ -78,7 +93,7 @@ const warnOnIncongruentInput = (work_params, sub$) => (args, CMD) => {
             : "s"} specified by its \`${CMD_WORK}\` handler: ${missing.map(x => `\`${x}\``)}
 
 ${stringify_fn(CMD, 2)}
-        `
+        `,
     )
     //  return args_params
 }
@@ -112,6 +127,19 @@ ${stringify_fn(CMD, 2)}
  */
 export const registerCMD = (command: ICommand = null, dev = true) => {
     const sub$ = command[CMD_SUB$]
+    /**
+     * 0: {"_SET_STATE" => Subscription}
+1: {"_NOTIFY_PRERENDER_DOM" => Subscription}
+2: {"_SET_LINK_ATTRS_DOM" => Subscription}
+3: {"_HREF_PUSHSTATE_DOM" => Subscription}
+4: {"_NAV" => Subscription}
+5: {"_INJECT_HEAD" => Subscription}
+6: {"_URL_NAVIGATED$_DOM" => Subscription}
+     */
+    if (out$.topics.has(sub$)) {
+        console.warn(`⚠ REGISTRATION FAILED: ${CMD_SUB$}: ${sub$} already registered! ⚠`)
+        return
+    }
     const args = command[CMD_ARGS]
     const erro = command[CMD_ERRO]
     const reso = command[CMD_RESO]
@@ -137,7 +165,7 @@ export const registerCMD = (command: ICommand = null, dev = true) => {
               [CMD_SUB$]: sub$,
               [CMD_ARGS]: args,
               [CMD_RESO]: reso,
-              [CMD_ERRO]: erro
+              [CMD_ERRO]: erro,
           }
         : { [CMD_SUB$]: sub$, [CMD_ARGS]: args }
 
@@ -149,7 +177,7 @@ export const registerCMD = (command: ICommand = null, dev = true) => {
         error: e => {
             console.warn("error in `out$` stream:", e)
             return false
-        }
+        },
     })
 
     return CMD
