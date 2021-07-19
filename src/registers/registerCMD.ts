@@ -68,16 +68,19 @@ export const forwardUpstreamCMD$ = (command: Command, downstream: PubSub<any>) =
 
 const err_str = "command Registration `registerCMD`"
 
-const no_work_or_src_error = `
-Error registering ${CMD_SUB$}:
-Commands with no \`${CMD_WORK}\` & no \`${CMD_SRC$}\` handler 
+const no_work_error = cmd => `
+Error registering 
+${stringify_fn(cmd)}
+Commands with no \`${CMD_WORK}\` handler 
 can/need not be registered:
 
-- \`${CMD_WORK}\`: registers side-effecting handlers
-- \`${CMD_SRC$}\`: registers upstream Command producers
+\`${CMD_WORK}\`: registers side-effecting handlers
 
-if your Command is for data acquisition/transformation, 
-you can run$.next(YOUR_COMMAND) without registration.
+Without the \`${CMD_WORK}\` handler, nothing will be done 
+when this Command is triggered.
+
+if your Command is for data acquisition/transformation only, 
+you can, e.g., run$.next(${cmd}) without registration.
 `
 
 const warnOnIncongruentInput = (work_params, sub$) => (args, CMD) => {
@@ -125,7 +128,7 @@ ${stringify_fn(CMD, 2)}
  *  4. `src$` (optional, enables stream to feed Command)
  *
  */
-export const registerCMD = (command: ICommand = null, dev = true) => {
+export const registerCMD = (command: ICommand = null, dev = true): Command => {
     const sub$ = command[CMD_SUB$]
     /**
      * 0: {"_SET_STATE" => Subscription}
@@ -146,9 +149,7 @@ export const registerCMD = (command: ICommand = null, dev = true) => {
     const src$ = command[CMD_SRC$]
     const work = command[CMD_WORK]
 
-    if (!work && !src$) {
-        throw new Error(no_work_or_src_error)
-    }
+    if (!work) throw new Error(no_work_error(command))
 
     const known_CMD_props = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK ]
     const [ unknown_CMD_props ] = diff_keys(known_CMD_props, command)

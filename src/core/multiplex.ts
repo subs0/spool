@@ -136,11 +136,13 @@ export const processArgs = async (acc, args) => {
             return { args_type, args }
         case "BINARY": case "N-ARY":
             console.warn(`${CMD_ARGS} function arity !== 1: ${stringify_fn(args)}`)
+            break
         case "UNARY":
             return await processArgs(acc, args(acc))
-        case "PROMISE":
-            let resolved = await args.catch(e => e)
+        case "PROMISE": {
+            const resolved = await args.catch(e => e)
             return await processArgs(acc, resolved)
+        }
         case "NULLARY":
             return await processArgs(acc, args())
         default:
@@ -212,7 +214,7 @@ export const handlePattern = async (
     const __RA = __R && { ...acc, ...__R }
 
     // equivalent matches are returned in LIFO order -> add least least restrictive cases first ⬇
-    let result = new EquivMap([ 
+    const result = new EquivMap([ 
         [ { K_M,                                 args_type: "UNKNOWN"   },() => (console.warn(NA_keys(C, i)), null) ],
         [ { K_M,                                 args_type: "OBJECT"    },() => __A ],
         [ { K_M: `${!K_M.includes("S") && K_M}`, args_type: "PRIMITIVE" },() => (console.warn(noSubEr(__C, i)), acc) ],
@@ -346,7 +348,7 @@ export const handlePattern = async (
  * applying it to the output
  *
  */
-export const multiplex = out$ => task_array =>
+export const multiplex = _out$ => task_array =>
     isArray(task_array)
         ? task_array.reduce(async (a, c, i) => {
               let acc = await a
@@ -365,14 +367,14 @@ export const multiplex = out$ => task_array =>
                       // between stack calls
                       queue.unshift({ [CMD_ARGS]: acc })
                       // recur
-                      return multiplex(out$)(queue)
+                      return multiplex(_out$)(queue)
                   } catch (e) {
                       console.warn(err_str, e)
                       return
                   }
               }
 
-              return await handlePattern(acc, c, out$, i) // returns accumulator
+              return await handlePattern(acc, c, _out$, i) // returns accumulator
           }, Promise.resolve({}))
         : (() => {
               throw new Error(task_not_array_error(task_array))
@@ -394,7 +396,7 @@ export const multiplex = out$ => task_array =>
  */
 export const run$: PubSub<any, any> = pubsub({
     topic: x => !!x[CMD_ARGS],
-    id: "run$_stream"
+    id: "run$_stream",
     //equiv: (res, tpc) => res === tpc
 })
 
@@ -404,7 +406,7 @@ export const run$: PubSub<any, any> = pubsub({
  */
 export const out$: PubSub<any, any> = pubsub({
     topic: x => x[CMD_SUB$],
-    id: "out$_stream"
+    id: "out$_stream",
     //equiv: (res, tpc) => res === tpc
 })
 
@@ -416,15 +418,15 @@ export const out$: PubSub<any, any> = pubsub({
  * simple lookup of the `sub$` key of the command
  */
 export const cmd$: ISubscription<any, any> = run$.subscribeTopic(
-    true, // has args
+    true, // has CMD_ARGS
     {
         next: x => out$.next(x),
         error: e => {
             console.warn("error in `cmd$` stream:", e)
             return false
-        }
+        },
     },
-    { id: "cmd$_stream" }
+    { id: "cmd$_stream" },
 )
 
 /**
@@ -434,13 +436,13 @@ export const cmd$: ISubscription<any, any> = run$.subscribeTopic(
  *
  */
 export const task$: ISubscription<any, any> = run$.subscribeTopic(
-    false, // no args = implied to be a collection/array
+    false, // no CMD_ARGS = implied to be a collection/array
     {
         next: multiplex(out$),
         error: e => {
             console.warn("error in `task$` stream:", e)
             return false
-        }
+        },
     },
-    { id: "task$_stream" }
+    { id: "task$_stream" },
 )
