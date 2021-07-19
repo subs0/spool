@@ -362,12 +362,12 @@ export const multiplex = _out$ => task_array =>
                */
               if (isFunction(c)) {
                   try {
-                      const queue = c(acc)
+                      const subtask = c(acc)
                       // ensures accumulator is preserved
                       // between stack calls
-                      queue.unshift({ [CMD_ARGS]: acc })
+                      subtask.unshift({ [CMD_ARGS]: acc })
                       // recur
-                      return multiplex(_out$)(queue)
+                      return multiplex(_out$)(subtask)
                   } catch (e) {
                       console.warn(err_str, e)
                       return
