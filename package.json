@@ -2,7 +2,7 @@
     "name": "@-0/spool",
     "author": "Logan Powell",
     "license": "MIT",
-    "version": "0.3.13",
+    "version": "0.3.14",
     "description": "SPA framework built on top of http://thi.ng/umbrella ecosystem",
     "main": "./lib/index.js",
     "type": "module",
@@ -22,7 +22,11 @@
         "ncu": "ncu -u && npm i && npm audit fix",
         "git": "git add . && git commit -m"
     },
-    "keywords": [ "thi.ng", "multiplex", "FRP" ],
+    "keywords": [
+        "thi.ng",
+        "multiplex",
+        "FRP"
+    ],
     "publishConfig": {
         "access": "public"
     },
