@@ -27,8 +27,8 @@
         "access": "public"
     },
     "dependencies": {
-        "@-0/keys": "^0.3.16",
-        "@-0/utils": "^0.3.16"
+        "@-0/keys": "^0.3.17",
+        "@-0/utils": "^0.3.17"
     },
     "peerDependencies": {
         "@thi.ng/paths": "^4.2.9",
