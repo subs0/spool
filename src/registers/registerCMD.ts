@@ -43,7 +43,7 @@ export const log$: Subscription<any, any> = stream()
  * registered.
  */
 export const forwardUpstreamCMD$ = (command: Command, downstream: PubSub<any>) => {
-    const upstream = command[CMD_SRC$]
+    const upstream: ISubscribable<any> | ISubscriber<any> = command[CMD_SRC$]
     const sub$ = command[CMD_SUB$]
     const args = command[CMD_ARGS]
     const isFn = isFunction(args)
