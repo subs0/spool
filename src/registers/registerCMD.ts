@@ -4,7 +4,15 @@
 
 import { map } from "@thi.ng/transducers"
 import { isFunction } from "@thi.ng/checks"
-import { ISubscribable, Subscription, stream, ISubscription, Stream, PubSub } from "@thi.ng/rstream"
+import {
+    ISubscribable,
+    Subscription,
+    stream,
+    ISubscription,
+    Stream,
+    PubSub,
+    ISubscriber,
+} from "@thi.ng/rstream"
 
 import {
     CMD_SUB$,
@@ -35,7 +43,7 @@ export const log$: Subscription<any, any> = stream()
  * registered.
  */
 export const forwardUpstreamCMD$ = (command: Command, downstream: PubSub<any>) => {
-    const upstream: Stream<any> = command[CMD_SRC$]
+    const upstream = command[CMD_SRC$]
     const sub$ = command[CMD_SUB$]
     const args = command[CMD_ARGS]
     const isFn = isFunction(args)

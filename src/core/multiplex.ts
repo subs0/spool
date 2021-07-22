@@ -9,68 +9,7 @@ import { EquivMap } from "@thi.ng/associative"
 import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK } from "@-0/keys"
 import { stringify_type, xKeyError, key_index_err, diff_keys, stringify_fn } from "@-0/utils"
 import { getIn } from "@thi.ng/paths"
-
-const err_str = "🔥 Command Dispatch Interrupted 🔥"
-
-const noSubEr = (c, i) => `
-${err_str}
-
- >> No \`${CMD_SUB$}\` included for a Command with primitive \`${CMD_ARGS}\` <<
-
-Ergo, nothing was done with this Command: 
-
-${stringify_fn(c)}
-
-${(i && key_index_err(c, i)) || ""}
-
-Hope that helps!
-
-`
-
-const noEroEr = (c, i) => `
-${err_str}
-
->> Unhandled Error 
-
-This Command:
-
-${stringify_fn(c)}
-
-resulted in an error, but no ${CMD_ERRO} (error) handler was included
-
-${(i && key_index_err(c, i)) || ""}
-Unhandled errors terminate Tasks by default
-
-`
-
-const task_not_array_error = x => `
-${err_str}
-
-You may have:
-1. Ran a Command that has no \`${CMD_ARGS}\` key and thus does nothing
-2. Ran a Subtask - a unary Function that accepts an inter-Task accumulator 
-    and returns an Array - outside of a Task and has thus starved
-
-Please check this payload for issues:
-${stringify_fn(x)}
-`
-
-const no_args_error = (C, i = null) => `
-${err_str}
-
-You have ran a Command that has no \`${CMD_ARGS}\` key and thus does nothing
-
-Please check this payload for issues:
-${stringify_fn(C)}
-
-${i ? key_index_err(C, i) : ""}
-`
-
-const NA_keys = (c, i) => {
-    const knowns = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO ]
-    const [ _, unknown_kvs ] = diff_keys(knowns, c)
-    return xKeyError(err_str, c, unknown_kvs, i)
-}
+import { no_args_error, NA_keys, noSubEr, noEroEr, err_str, task_not_array_error } from "./errors"
 
 // prettier-ignore
 /**
@@ -351,7 +290,7 @@ export const handlePattern = async (
 export const multiplex = _out$ => task_array =>
     isArray(task_array)
         ? task_array.reduce(async (a, c, i) => {
-              let acc = await a
+              const acc = await a
 
               /**
                * @example
@@ -394,7 +333,7 @@ export const multiplex = _out$ => task_array =>
  *    (e.g., popstate / { sub$:  "cancel" })
  *
  */
-export const run$: PubSub<any, any> = pubsub({
+export const run$ = pubsub({
     topic: x => !!x[CMD_ARGS],
     id: "run$_stream",
     //equiv: (res, tpc) => res === tpc
@@ -404,7 +343,7 @@ export const run$: PubSub<any, any> = pubsub({
  * Primary user-land _READ_ stream. For attaching handlers
  * for responding to emmitted Commands
  */
-export const out$: PubSub<any, any> = pubsub({
+export const out$ = pubsub({
     topic: x => x[CMD_SUB$],
     id: "out$_stream",
     //equiv: (res, tpc) => res === tpc
@@ -417,7 +356,7 @@ export const out$: PubSub<any, any> = pubsub({
  * `topic` function used to alert downstream handlers is a
  * simple lookup of the `sub$` key of the command
  */
-export const cmd$: ISubscription<any, any> = run$.subscribeTopic(
+export const cmd$ = run$.subscribeTopic(
     true, // has CMD_ARGS
     {
         next: x => out$.next(x),
@@ -435,7 +374,7 @@ export const cmd$: ISubscription<any, any> = run$.subscribeTopic(
  * to `multiplex`er (the heart of `spule`)
  *
  */
-export const task$: ISubscription<any, any> = run$.subscribeTopic(
+export const task$ = run$.subscribeTopic(
     false, // no CMD_ARGS = implied to be a collection/array
     {
         next: multiplex(out$),
