@@ -19,15 +19,15 @@ import { no_args_error, NA_keys, noSubEr, noEroEr, err_str, task_not_array_error
  * Command
  *
  * @example
- * keys_match({ sub$: "a" }) 
+ * keys_match({ sub$: "a" })
  * //=> "NO_ARGS"
  *
  * @example
- * keys_match({ args: 1 }) 
+ * keys_match({ args: 1 })
  * //=> "A"
  *
  * @example
- * keys_match({ sub$: "a", args: 1 }) 
+ * keys_match({ sub$: "a", args: 1 })
  * //=> "AS"
  */
 export const keys_match = C => new EquivMap([
@@ -56,18 +56,17 @@ export const keys_match = C => new EquivMap([
  * the value.
  *
  * @example
- * processArgs({ x: 1 }, ({ x }) => ({ y: x })) 
+ * processArgs({ x: 1 }, ({ x }) => ({ y: x }))
  * //=> { args_type: "OBJECT", args: { y: 1 } }
  *
  * @example
- * processArgs({}, true) 
+ * processArgs({}, true)
  * //=> { args_type: "PRIMITIVE", args: true }
  *
  * @example
  * processArgs({}, ({ x }) => ({ a: x + 1 }))
  * //=> { args_type: "ERROR", args: { Error: "Cannot destructure x..." } }
  */
-
 export const processArgs = async (acc, args) => {
     const args_type = stringify_type(args)
     switch (args_type) {
@@ -79,7 +78,9 @@ export const processArgs = async (acc, args) => {
         case "UNARY":
             return await processArgs(acc, args(acc))
         case "PROMISE": {
-            const resolved = await args.catch(e => e)
+            const resolved = await args.catch(e => {
+                throw new Error(`Error in processArgs for args: ${args}. Error: ${e}`)
+            })
             return await processArgs(acc, resolved)
         }
         case "NULLARY":
@@ -105,12 +106,12 @@ using the \`registerCMD\` function
  * side-effect handlers registered, they will be triggered
  * before returning. The return value from this function is
  * used to set the accumulator value in every cycle of the
- * `multiplex` function. 
+ * `multiplex` function.
  *
  * @example
  * import { stream, trace } from "@thi.ng/rstream"
  * import { registerCMD } from "../src/registers"
- * const args = ({ x }) =>  
+ * const args = ({ x }) =>
  *
  * const do_it = {
  *    sub$: "do_it",
@@ -120,7 +121,7 @@ using the \`registerCMD\` function
  * const DO_IT = registerCMD(do_it)
  *
  * const test = await pattern_match({ x: "!" }, DO_IT)
- * test //=> 
+ * test //=>
  * // did it!
  */
 export const handlePattern = async (
@@ -365,7 +366,7 @@ export const cmd$ = run$.subscribeTopic(
             return false
         },
     },
-    { id: "cmd$_stream" },
+    { id: "cmd$_stream" }
 )
 
 /**
@@ -383,5 +384,5 @@ export const task$ = run$.subscribeTopic(
             return false
         },
     },
-    { id: "task$_stream" },
+    { id: "task$_stream" }
 )
