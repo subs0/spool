@@ -31,29 +31,29 @@
         "access": "public"
     },
     "dependencies": {
-        "@-0/keys": "^0.3.17",
-        "@-0/utils": "^0.3.17"
+        "@-0/keys": "^0.3.18",
+        "@-0/utils": "^0.3.18"
     },
     "peerDependencies": {
-        "@thi.ng/paths": "^4.2.9",
-        "@thi.ng/rstream": "^6.0.10"
+        "@thi.ng/paths": "^4.2.12",
+        "@thi.ng/rstream": "^6.0.16"
     },
     "devDependencies": {
-        "@babel/plugin-transform-modules-commonjs": "^7.14.5",
-        "@thi.ng/arrays": "^0.10.13",
-        "@thi.ng/associative": "5.2.6",
-        "@thi.ng/atom": "^4.1.37",
-        "@thi.ng/checks": "^2.9.8",
-        "@thi.ng/paths": "^4.2.9",
-        "@thi.ng/rstream": "^6.0.10",
-        "@thi.ng/transducers": "^7.7.4",
-        "@types/jest": "^26.0.24",
-        "@types/node": "^16.4.0",
-        "@typescript-eslint/eslint-plugin": "^4.28.4",
-        "@typescript-eslint/parser": "^4.28.4",
+        "@babel/plugin-transform-modules-commonjs": "^7.15.0",
+        "@thi.ng/arrays": "^1.0.1",
+        "@thi.ng/associative": "5.2.11",
+        "@thi.ng/atom": "^4.1.40",
+        "@thi.ng/checks": "^2.9.10",
+        "@thi.ng/paths": "^4.2.12",
+        "@thi.ng/rstream": "^6.0.16",
+        "@thi.ng/transducers": "^7.8.3",
+        "@types/jest": "^27.0.1",
+        "@types/node": "^16.6.1",
+        "@typescript-eslint/eslint-plugin": "^4.29.1",
+        "@typescript-eslint/parser": "^4.29.1",
         "babel-jest": "^27.0.6",
         "cross-env": "^7.0.3",
-        "eslint": "^7.31.0",
+        "eslint": "^7.32.0",
         "eslint-plugin-jest": "^24.4.0",
         "gh-pages": "^3.2.3",
         "jest": "^27.0.6",
