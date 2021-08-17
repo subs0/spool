@@ -4,26 +4,9 @@
 
 import { map } from "@thi.ng/transducers"
 import { isFunction } from "@thi.ng/checks"
-import {
-    ISubscribable,
-    Subscription,
-    stream,
-    ISubscription,
-    Stream,
-    PubSub,
-    ISubscriber,
-} from "@thi.ng/rstream"
+import { ISubscribable, Subscription, stream, ISubscription, Stream, PubSub, ISubscriber } from "@thi.ng/rstream"
 
-import {
-    CMD_SUB$,
-    CMD_ARGS,
-    CMD_RESO,
-    CMD_ERRO,
-    CMD_SRC$,
-    CMD_WORK,
-    Command,
-    ICommand,
-} from "@-0/keys"
+import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, Command, ICommand, ICommandObject } from "@-0/keys"
 import { xKeyError, diff_keys, stringify_fn } from "@-0/utils"
 
 import { out$ } from "../core"
@@ -60,7 +43,7 @@ export const forwardUpstreamCMD$ = (command: Command, downstream: PubSub<any>) =
     })
     /**
      * for each emission from upstream source, export it
-     * downstream 
+     * downstream
      */
     return upstream.subscribe({
         next: x => {
@@ -93,29 +76,37 @@ you can, e.g., run$.next(${cmd}) without registration.
 
 const warnOnIncongruentInput = (work_params, sub$) => (args, CMD) => {
     const args_params = Object.keys(args)
-    let missing = work_params.reduce(
-        (a, c) => (args_params.some(x => x === c) ? a : a.concat(c)),
-        [],
-    )
+    let missing = work_params.reduce((a, c) => (args_params.some(x => x === c) ? a : a.concat(c)), [])
     if (!missing.length) return
     console.warn(
-        `Command { \`${CMD_SUB$}\`: '${sub$}' } missing argument${missing.length === 1
-            ? ""
-            : "s"} specified by its \`${CMD_WORK}\` handler: ${missing.map(x => `\`${x}\``)}
+        `Command { \`${CMD_SUB$}\`: '${sub$}' } missing argument${
+            missing.length === 1 ? "" : "s"
+        } specified by its \`${CMD_WORK}\` handler: ${missing.map(x => `\`${x}\``)}
 
 ${stringify_fn(CMD, 2)}
-        `,
+        `
     )
     //  return args_params
 }
+
 /**
- *
  *
  * Takes a Command object with some additional information
  * and returns a Command `run`able in a Task or as-is.
  *
- * ### Example
+ * A Command object can be registered with up to six keys:
+ * 1. `sub$` (required)
+ * 2. `args` (optional, sets default) during registration
+ * 3. `work` (required)
+ * 4. `src$` (optional, enables stream to feed Command)
+ * 5. `reso` (optional, for successful promise resolution)
+ * 6. `erro` (optional, for unsuccessful promise handling)
  *
+ * Upon registration, any `work` and/or `src$` properties
+ * will be digested out of the returned Command object,
+ * which you can use to trigger the Command with later.
+ *
+ * @example
  * ```js
  * const genie = {
  *   sub$: "GENIE",
@@ -126,26 +117,49 @@ ${stringify_fn(CMD, 2)}
  * const GENIE = registerCMD(genie)
  *
  * run(GENIE)
- * // 🧞 says: your wish is my command
+ * //=> 🧞 says: your wish is my command
  * ```
+ * If you wish to provide a registered Command with a
+ * dynamic value, you should spread over the `args` of the
+ * returned Command:
  *
- * A Command object can have four keys:
- *  1. `sub$` (required)
- *  2. `args` (optional, sets default) during registration
- *  3. `work` (required)
- *  4. `src$` (optional, enables stream to feed Command)
+ * @example
+ * ```js
+ * run({ ...GENIE, args: "DESIRE" })
+ * //=> 🧞 says: DESIRE is my command
+ * ```
+ * If you wish to compose two Commands together, the `args`
+ * can also take a function that is passed an accumulation of
+ * the prior Commands `args` or `reso` (if `args` is a Promise)
+ * within a "Task" (an Array of Commands)
  *
+ * @example
+ * ```js
+ * run([
+ *      {
+ *          args: new Promise((res, rej) => res("whatever")),
+ *          reso: (acc, res) => ({ give: res }) //<- { give } is spread into Task accumulator
+ *      },
+ *      {
+ *          args: { wish: "you ask for" } //<- { wish } is spread into Task accumulator
+ *      },
+ *      {
+ *          ...GENIE,
+ *          args: ({ give, wish }) => give + " " + wish //<- grab it w/function as `args`
+ *      }
+ * ])
+ * //=> 🧞 says: whatever you ask for is my command
  */
-export const registerCMD = (command: ICommand = null, dev = true): Command => {
+export const registerCMD = (command: ICommand, dev = true): ICommandObject => {
     const sub$ = command[CMD_SUB$]
     /**
      * 0: {"_SET_STATE" => Subscription}
-1: {"_NOTIFY_PRERENDER_DOM" => Subscription}
-2: {"_SET_LINK_ATTRS_DOM" => Subscription}
-3: {"_HREF_PUSHSTATE_DOM" => Subscription}
-4: {"_NAV" => Subscription}
-5: {"_INJECT_HEAD" => Subscription}
-6: {"_URL_NAVIGATED$_DOM" => Subscription}
+     * 1: {"_NOTIFY_PRERENDER_DOM" => Subscription}
+     * 2: {"_SET_LINK_ATTRS_DOM" => Subscription}
+     * 3: {"_HREF_PUSHSTATE_DOM" => Subscription}
+     * 4: {"_NAV" => Subscription}
+     * 5: {"_INJECT_HEAD" => Subscription}
+     * 6: {"_URL_NAVIGATED$_DOM" => Subscription}
      */
     if (out$.topics.has(sub$)) {
         console.warn(`⚠ REGISTRATION FAILED: ${CMD_SUB$}: ${sub$} already registered! ⚠`)
@@ -159,8 +173,8 @@ export const registerCMD = (command: ICommand = null, dev = true): Command => {
 
     if (!work) throw new Error(no_work_error(command))
 
-    const known_CMD_props = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK ]
-    const [ unknown_CMD_props ] = diff_keys(known_CMD_props, command)
+    const known_CMD_props = [CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK]
+    const [unknown_CMD_props] = diff_keys(known_CMD_props, command)
     // console.log({ known_CMD_props, unknown_CMD_props })
 
     if (unknown_CMD_props.length > 0) {
@@ -176,9 +190,12 @@ export const registerCMD = (command: ICommand = null, dev = true): Command => {
               [CMD_RESO]: reso,
               [CMD_ERRO]: erro,
           }
-        : { [CMD_SUB$]: sub$, [CMD_ARGS]: args }
+        : {
+              [CMD_SUB$]: sub$,
+              [CMD_ARGS]: args,
+          }
 
-    out$.subscribeTopic<ISubscription<any, any>>(sub$, {
+    out$.subscribeTopic(sub$, {
         next: x => {
             if (dev) log$.next(x) // send every Command to log$ stream if in dev mode
             return work(x[CMD_ARGS]) // execute side-effects, etc.
