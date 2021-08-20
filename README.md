@@ -50,9 +50,9 @@ Stupid Command example:
 import { run$, registerCMD } from "spule"
 
 const GENIE = registerCMD({
-  sub$: "GENIE",
-  args: "your wish",
-  work: x => console.log("🧞‍♀️:", x, "is my command")
+    sub$: "GENIE",
+    args: "your wish",
+    work: x => console.log("🧞‍♀️:", x, "is my command"),
 })
 
 // work handler is digested during registration
@@ -87,21 +87,18 @@ call...
 // src/genie.js (continued)
 
 export const GET__FORTUNE = [
-  // 1st Command args' Object initializes an accumulator
-  { args: { api: "http://yerkee.com/api/fortune" } },
+    // 1st Command args' Object initializes an accumulator
+    { args: { api: "http://yerkee.com/api/fortune" } },
 
-  // lambda args have access to the accumulation
-  {
-    args: ({ api }) => fetch(api).then(r => r.json()),
-    reso: (acc, { fortune }) => ({ fortune }),
-    erro: (acc, err) => ({ error: err })
-  }
+    // lambda args have access to the accumulation
+    {
+        args: ({ api }) => fetch(api).then(r => r.json()),
+        reso: (acc, { fortune }) => ({ fortune }),
+        erro: (acc, err) => ({ error: err }),
+    },
 ]
 
-const FORTUNE__GENIE = [
-  ...GET__FORTUNE,
-  { ...GENIE, args: ({ fortune }) => fortune }
-]
+const FORTUNE__GENIE = [...GET__FORTUNE, { ...GENIE, args: ({ fortune }) => fortune }]
 
 run$.next(FORTUNE__GENIE)
 
@@ -146,15 +143,15 @@ import { run$, registerCMD } from "spule"
 import { GET__FORTUNE } from "./genie"
 
 const ZOLTAR = registerCMD({
-  sub$: "ZOLTAR",
-  args: { zoltar: "make your wish" },
-  work: ({ zoltar }) => console.log("🧞‍♂️:", zoltar)
+    sub$: "ZOLTAR",
+    args: { zoltar: "make your wish" },
+    work: ({ zoltar }) => console.log("🧞‍♂️:", zoltar),
 })
 
 const TOM = registerCMD({
-  sub$: "TOM",
-  args: { tom: "👶: I wish I were big" },
-  work: ({ tom }) => console.log(tom)
+    sub$: "TOM",
+    args: { tom: "👶: I wish I were big" },
+    work: ({ tom }) => console.log(tom),
 })
 
 /**
@@ -162,16 +159,16 @@ const TOM = registerCMD({
  * Object and returns a Task
  */
 const ZOLTAR__X = ({ zoltar }) => [
-  { ...TOM, args: { tom: "🧒: I wish I was small again" } },
-  { ...ZOLTAR, args: { zoltar } }
+    { ...TOM, args: { tom: "🧒: I wish I was small again" } },
+    { ...ZOLTAR, args: { zoltar } },
 ]
 
 const BIG__MORAL = [
-  ZOLTAR,
-  TOM,
-  { ...ZOLTAR, args: { zoltar: "your wish is granted" } },
-  ...GET__FORTUNE,
-  ({ fortune }) => ZOLTAR__X({ zoltar: fortune })
+    ZOLTAR,
+    TOM,
+    { ...ZOLTAR, args: { zoltar: "your wish is granted" } },
+    ...GET__FORTUNE,
+    ({ fortune }) => ZOLTAR__X({ zoltar: fortune }),
 ]
 
 run$.next(BIG__MORAL)
@@ -213,7 +210,7 @@ providing a DX that is versatile, modular and composable.
 | `erro` | Lambda | Promise `args` rejection handler                 | Promises     |
 | `src$` | Stream | Upstream/source stream ([advanced](#advanced))   | optional     |
 
-## The `SET_STATE` Command (built-in)
+## The `_SET_STATE` Command (built-in)
 
 TODO
 
@@ -299,27 +296,26 @@ const known = x => ["fortunes", "lessons"].find(y => y === x)
 const four04 = [{ chinese: 404, english: 404 }]
 const home = [{ chinese: "家", english: "home" }]
 const url = "https://fortunecookieapi.herokuapp.com/v1/"
-const query = (a, b) =>
-  fetch(`${url}${a}?limit=1&skip=${b}`).then(r => r.json())
+const query = (a, b) => fetch(`${url}${a}?limit=1&skip=${b}`).then(r => r.json())
 
 export const match = async path => {
-  const args = path ? path.split("/") : []
+    const args = path ? path.split("/") : []
 
-  let [api, id] = args
+    let [api, id] = args
 
-  const data =
-    new EquivMap([
-      // prevent unneeded requests w/thunks (0)=>
-      [[], () => home],
-      [[known(api), id], () => query(api, id)], // guarded match
-      [[known(api)], () => query(api, 1)] // guarded match
-    ]).get(args) || (() => four04)
+    const data =
+        new EquivMap([
+            // prevent unneeded requests w/thunks (0)=>
+            [[], () => home],
+            [[known(api), id], () => query(api, id)], // guarded match
+            [[known(api)], () => query(api, 1)], // guarded match
+        ]).get(args) || (() => four04)
 
-  // call the thunk to trigger the actual request
-  const res = await data()
-  const r = res[0]
+    // call the thunk to trigger the actual request
+    const res = await data()
+    const r = res[0]
 
-  return r.message || `${r.chinese}: ${r.english}`
+    return r.message || `${r.chinese}: ${r.english}`
 }
 
 const log = console.log
@@ -438,32 +434,32 @@ import { stream } from "@thi.ng/rstream"
 import { map, comp } from "@thi.ng/transducers"
 // ad-hoc stream
 let login = stream().subscribe(
-  comp(
-    map(x => console.log("login ->", x)),
-    map(({ token }) => loginToMyAuth(token))
-  )
+    comp(
+        map(x => console.log("login ->", x)),
+        map(({ token }) => loginToMyAuth(token))
+    )
 )
 // subtask ({A})=>
 let ANALYTICS = ({ token }) => [
-  {
-    sub$: login, // <- stream
-    // thunk custom stream dispatch (0)=>
-    args: () => ({ token })
-  }
+    {
+        sub$: login, // <- stream
+        // thunk custom stream dispatch (0)=>
+        args: () => ({ token }),
+    },
 ]
 // task
 let task = [
-  // no sub$, just pass data
-  { args: { href: "https://my.io/auth" } },
-  { sub$: login, args: () => "logging in..." },
-  {
-    sub$: "AUTH",
-    args: ({ href }) => fetch(href).then(r => r.json()),
-    erro: (acc, err) => ({ sub$: "cancel", args: err }),
-    reso: (acc, res) => ({ token: res })
-  },
-  acc => ANALYTICS(acc),
-  { sub$: login, args: () => "log in success" }
+    // no sub$, just pass data
+    { args: { href: "https://my.io/auth" } },
+    { sub$: login, args: () => "logging in..." },
+    {
+        sub$: "AUTH",
+        args: ({ href }) => fetch(href).then(r => r.json()),
+        erro: (acc, err) => ({ sub$: "cancel", args: err }),
+        reso: (acc, res) => ({ token: res }),
+    },
+    acc => ANALYTICS(acc),
+    { sub$: login, args: () => "log in success" },
 ]
 ```
 
@@ -492,26 +488,26 @@ c>- ---|tc|*-----------*-----------------*-> : registerCMD
 
 ### Streams
 
-- `0>-`: userland stream emmissions (`run`)
-- `1>-`: pubsub forking stream (if emmission has a `sub$`)
-- `2>-`: pubsub = `false`? -> `task$` stream
-- `3>-`: pubsub = `true`? -> `cmd$` stream
-- `4>-`: pubsub emits to `registerCMD` based on `sub$` value
+-   `0>-`: userland stream emmissions (`run`)
+-   `1>-`: pubsub forking stream (if emmission has a `sub$`)
+-   `2>-`: pubsub = `false`? -> `task$` stream
+-   `3>-`: pubsub = `true`? -> `cmd$` stream
+-   `4>-`: pubsub emits to `registerCMD` based on `sub$` value
 
 ### `work` Handlers
 
-- `4>-` this is the stream to which the user (and framework)
-  attaches `work` handlers. Handlers receive events they
-  subscribe to as topics based on a `sub$` key in a Command
-  object.
+-   `4>-` this is the stream to which the user (and framework)
+    attaches `work` handlers. Handlers receive events they
+    subscribe to as topics based on a `sub$` key in a Command
+    object.
 
 #### Built-in Commands/Tasks:
 
-- `SET_STATE`: Global state update Command
-- `URL__ROUTE`: Routing Task
-- "FLIP" :
-  [F.L.I.P.](https://aerotwist.com/blog/flip-your-animations/)
-  animations Commands for route/page transitiions
+-   `SET_STATE`: Global state update Command
+-   `URL__ROUTE`: Routing Task
+-   "FLIP" :
+    [F.L.I.P.](https://aerotwist.com/blog/flip-your-animations/)
+    animations Commands for route/page transitiions
 
 ### `run$`
 
@@ -575,16 +571,16 @@ the `task$` stream.
 import { EquivMap } from "@thi.ng/associative"
 
 const haiku = args => {
-  const { a, b, c } = args
-  const [d] = c || []
+    const { a, b, c } = args
+    const [d] = c || []
 
-  const line =
-    new EquivMap([
-      [{ a, b }, `${a} are ${b}`],
-      [{ a, b, c: [d] }, `But ${a} they don't ${b} ${d}`]
-    ]).get(args) || "refrigerator"
+    const line =
+        new EquivMap([
+            [{ a, b }, `${a} are ${b}`],
+            [{ a, b, c: [d] }, `But ${a} they don't ${b} ${d}`],
+        ]).get(args) || "refrigerator"
 
-  console.log(line)
+    console.log(line)
 }
 
 haiku({ a: "haikus", b: "easy" })
@@ -603,16 +599,16 @@ guard. Let's see an example of guarding matches for
 
 ```js
 let guarded_matcher = args => {
-  let { a, c } = args
+    let { a, c } = args
 
-  let res =
-    // for guards on objects use computed properties
-    new EquivMap([
-      [{ a, [c > 3 && "c"]: c }, `${c} is greater than 3`],
-      [{ a, [c < 3 && "c"]: c }, `${c} is less than 3`]
-    ]).get(args) || "no match"
+    let res =
+        // for guards on objects use computed properties
+        new EquivMap([
+            [{ a, [c > 3 && "c"]: c }, `${c} is greater than 3`],
+            [{ a, [c < 3 && "c"]: c }, `${c} is less than 3`],
+        ]).get(args) || "no match"
 
-  console.log(res)
+    console.log(res)
 }
 
 guarded_matcher({ a: "b", c: 2 })
@@ -625,25 +621,25 @@ guarded_matcher({ a: "b", c: 4 })
 //=> greater than 3
 ```
 
-- Naming Conventions:
-  - constants: `CAPITAL_SNAKE_CASE`
-    - generally accepted convention for constants in JS
-    - used for defining Commands (as though they might cause
-      side effects, their subscription names are constant -
-      i.e., a signal for emphasising this aspect of a
-      Command)
-  - pure functions: `snake_case`
-    - some novelty here due to pure functions acting like
-      constants in that with the same input they always
-      return the same output
-  - impure functions: `camelCase`
-    - regular side-effecty JS
-  - Tasks: `DOUBLE__UNDERSCORE__SNAKE__CASE`
-    - implies the inputs and outputs on either end of a Task
-    - Tasks also should be treated as pure functions where
-      the output is really just data (and lambdas). This is
-      going in the direction of "code as data"
-- lots'o'examples
+-   Naming Conventions:
+    -   constants: `CAPITAL_SNAKE_CASE`
+        -   generally accepted convention for constants in JS
+        -   used for defining Commands (as though they might cause
+            side effects, their subscription names are constant -
+            i.e., a signal for emphasising this aspect of a
+            Command)
+    -   pure functions: `snake_case`
+        -   some novelty here due to pure functions acting like
+            constants in that with the same input they always
+            return the same output
+    -   impure functions: `camelCase`
+        -   regular side-effecty JS
+    -   Tasks: `DOUBLE__UNDERSCORE__SNAKE__CASE`
+        -   implies the inputs and outputs on either end of a Task
+        -   Tasks also should be treated as pure functions where
+            the output is really just data (and lambdas). This is
+            going in the direction of "code as data"
+-   lots'o'examples
 
 ## Credits
 
