@@ -31,24 +31,24 @@
         "access": "public"
     },
     "dependencies": {
-        "@-0/keys": "^0.3.28",
-        "@-0/utils": "^0.3.28"
+        "@-0/keys": "^0.3.29",
+        "@-0/utils": "^0.3.29"
     },
     "peerDependencies": {
         "@thi.ng/paths": "^4.2.13",
-        "@thi.ng/rstream": "^6.0.19"
+        "@thi.ng/rstream": "^6.0.20"
     },
     "devDependencies": {
         "@babel/plugin-transform-modules-commonjs": "^7.15.0",
         "@thi.ng/arrays": "^1.0.2",
-        "@thi.ng/associative": "5.2.14",
+        "@thi.ng/associative": "5.2.15",
         "@thi.ng/atom": "^4.1.41",
         "@thi.ng/checks": "^2.9.10",
         "@thi.ng/paths": "^4.2.13",
-        "@thi.ng/rstream": "^6.0.19",
+        "@thi.ng/rstream": "^6.0.20",
         "@thi.ng/transducers": "^7.9.1",
         "@types/jest": "^27.0.1",
-        "@types/node": "^16.7.0",
+        "@types/node": "^16.7.1",
         "@typescript-eslint/eslint-plugin": "^4.29.2",
         "@typescript-eslint/parser": "^4.29.2",
         "babel-jest": "^27.0.6",
