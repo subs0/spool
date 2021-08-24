@@ -74,6 +74,14 @@ if your Command is for data acquisition/transformation only,
 you can, e.g., run$.next(${cmd}) without registration.
 `
 
+/**
+ * TODO: enable dynamic typechecking on static defined
+ * CMD_ARGs (either {...} or ({...}) => ({...})) during
+ * incoming to stream. Possibly in registerCMD:
+ * ```
+ * if (dev) log$.next(x)
+ * ```
+ */
 const warnOnIncongruentInput = (work_params, sub$) => (args, CMD) => {
     const args_params = Object.keys(args)
     let missing = work_params.reduce((a, c) => (args_params.some(x => x === c) ? a : a.concat(c)), [])
@@ -163,7 +171,7 @@ export const registerCMD = (command: ICommand, dev = true): ICommandObject => {
      */
     if (out$.topics.has(sub$)) {
         console.warn(`⚠ REGISTRATION FAILED: ${CMD_SUB$}: ${sub$} already registered! ⚠`)
-        return
+        return null
     }
     const args = command[CMD_ARGS]
     const erro = command[CMD_ERRO]
