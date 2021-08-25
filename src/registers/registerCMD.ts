@@ -159,7 +159,7 @@ you can, e.g., run$.next(${cmd}) without registration.
  * ])
  * //=> 🧞 says: whatever you ask for is my command
  */
-export const registerCMD = (command: ICommand, dev = true): ICommandObject => {
+export const registerCMD = (command: ICommand, dev = true): ICommandObject | ICommand => {
     const sub$ = command[CMD_SUB$]
     /**
      * 0: {"_SET_STATE" => Subscription}
