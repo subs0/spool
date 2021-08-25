@@ -1,10 +1,10 @@
-import { isFunction, isPromise, isArray } from "@thi.ng/checks"
-import { pubsub, Subscription, PubSub, ISubscription } from "@thi.ng/rstream"
-import { EquivMap } from "@thi.ng/associative"
+//import { isFunction, isPromise, isArray } from "@thi.ng/checks"
+//import { pubsub, Subscription, PubSub, ISubscription } from "@thi.ng/rstream"
+//import { getIn } from "@thi.ng/paths"
+//import { EquivMap } from "@thi.ng/associative"
 
-import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK } from "@-0/keys"
-import { stringify_type, xKeyError, key_index_err, diff_keys, stringify_fn } from "@-0/utils"
-import { getIn } from "@thi.ng/paths"
+import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO } from "@-0/keys"
+import { xKeyError, key_index_err, diff_keys, stringify_fn } from "@-0/utils"
 
 export const err_str = "🔥 Command Dispatch Interrupted 🔥"
 
@@ -63,7 +63,7 @@ ${i ? key_index_err(C, i) : ""}
 `
 
 export const NA_keys = (c, i) => {
-    const knowns = [ CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO ]
-    const [ _, unknown_kvs ] = diff_keys(knowns, c)
+    const knowns = [CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO]
+    const [_, unknown_kvs] = diff_keys(knowns, c)
     return xKeyError(err_str, c, unknown_kvs, i)
 }

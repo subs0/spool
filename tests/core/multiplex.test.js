@@ -6,19 +6,7 @@ import { CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SRC$, CMD_SUB$, CMD_WORK } from "@-0/
 import { cmd, log, a_async, a_P } from "../fixtures"
 import { run$, cmd$, out$, task$, multiplex, keys_match, processArgs, handlePattern } from "../../src/core"
 
-/**
- *
- * TODO:
- * 1. Create Commands with varying combinations of
- *    properties (remember src$ and work don't go in
- *    Commands)
- * 2. Refactor to Pattern Matching with thi.ng/EquivMap 💡 nested patterns { Command: { args: { } } }
- *      - step 1) check for args: !args ? NOOP
- *      - step 2) resolve args
- *      - step 3) stringify_type(args)
- *      - step 4) pattern match keys
- *
-// 
+//
 // No. | Pattern Match for Commands : | Fn | dispatch?             | accumulator (A) effect
 // --- | ---                          |--- | ---                   | ---
 // a1  | { sub$ }                     | 🔴 | N: No args            | Noop
@@ -46,30 +34,28 @@ import { run$, cmd$, out$, task$, multiplex, keys_match, processArgs, handlePatt
 // b4  | (acc) =>                     | 💛 | Y: resolved function  | A = {...A, ...args(A) }
 // b5  | async (acc) => await         | 💛 | Y: resolved function  | A = {...A, ...args(A) }
 // b6  | () =>                        | 💛 | Y: resolved function  | A = {...A, ...args(A) }
-// 
+//
 // No. | reso:                        | Fn | dispatch?             | accumulator (A) effect
-// --- | ---                          |--- | ---                   | --- 
-// c1  | 2                            | 🔴 | No                    | reset?? 
+// --- | ---                          |--- | ---                   | ---
+// c1  | 2                            | 🔴 | No                    | reset??
 // c2  | (acc, res) =>                | 💚 | No                    | { ...A, ...await reso(await args) }
-// 
+//
 // No. | for resolved values:         | Fn | dispatch?             | accumulator (A) effect
 // --- | ---                          |--- | ---                   | ---
 // d1  | 2                            | b1 | b1                    | b1
 // d2  | {*}                          | b2 | b2                    | b2
 // d3  | {P}                          | b3 | b3                    | b3
 // d4  | {E}                          | 🔴 | No                    | default: null out
-// 
+//
 // No. | erro:                        | Fn | dispatch?             | accumulator (A) effect
 // --- | ---                          |--- | ---                   | ---
 // e1  | undefined                    | 🔴 | No                    | A = null
 // e2  | 2                            | 🔴 | No                    | A = null
 // e3  | {C}                          | 💛 | Y: if Command Obj     | A = null
 // e4  | (acc, err, out$) =>          | 💚 | No                    | A = erro(acc, err, out$)
-// 
+//
 // to dispatch to ad-hoc stream...
 //
- * 2. Create a test for each.
- */
 
 // No. | Pattern Match for Commands : | Fn | dispatch?             | accumulator (A) effect
 // a1  | { sub$ }                     | 🔴 | N: No args            | Noop
@@ -98,7 +84,7 @@ const cmd_e_3fn_err = { ...cmd.e_3fn_err }
 // d2  | {*}                          | b2 | b2                    | b2
 const cmd_s_r_2fn_yay = {
     ...cmd.r_2fn_yay,
-    [CMD_SUB$] : "cmd_s_r_2fn_yay"
+    [CMD_SUB$]: "cmd_s_r_2fn_yay",
 }
 
 // a6  | { sub$, erro }               | 🔴 | N: No args            | Noop
@@ -192,7 +178,7 @@ const cmd_r_2fn_yay_e_3fn_err = { ...cmd.e_3fn_err, ...cmd.r_2fn_yay }
 const cmd_s_a_0fn2P_2pri_r_2fn_yay = {
     ...cmd.r_2fn_yay,
     ...cmd.a_0fn2P_2pri,
-    [CMD_SUB$] : "cmd_s_a_0fn2P_2pri_r_2fn_yay"
+    [CMD_SUB$]: "cmd_s_a_0fn2P_2pri_r_2fn_yay",
 }
 
 // a11 | { sub$, args, reso }         | 💚 | Y: resolved Promise   | { ...A, ...await reso(await args) }
@@ -204,7 +190,7 @@ const cmd_s_a_0fn2P_2pri_r_2fn_yay = {
 const cmd_s_a_1fn2P_2obj_r_2fn_yay = {
     ...cmd.r_2fn_yay,
     ...cmd.a_1fn2P_2obj,
-    [CMD_SUB$] : "cmd_s_a_1fn2P_2obj_r_2fn_yay"
+    [CMD_SUB$]: "cmd_s_a_1fn2P_2obj_r_2fn_yay",
 }
 
 // No error handler for error, reso not called
@@ -228,7 +214,7 @@ const cmd_s_a_1fn2P_boo_e_3fn_err = { ...cmd.e_3fn_err, ...cmd.a_1fn2P_boo, [CMD
 const cmd_s_r_2fn_yay_e_3fn_err = {
     ...cmd.e_3fn_err,
     ...cmd.r_2fn_yay,
-    [CMD_SUB$] : "cmd_s_r_2fn_yay_e_3fn_err"
+    [CMD_SUB$]: "cmd_s_r_2fn_yay_e_3fn_err",
 }
 
 // a14 | { args, reso, erro }         | 💛 | N: No sub$            | xformed by reso ->...res
@@ -239,7 +225,7 @@ const cmd_s_r_2fn_yay_e_3fn_err = {
 const cmd_a_1fn2P_boo_r_2fn_yay_e_3fn_err = {
     ...cmd.e_3fn_err,
     ...cmd.r_2fn_yay,
-    ...cmd.a_1fn2P_boo
+    ...cmd.a_1fn2P_boo,
 }
 
 // a14 | { args, reso, erro }         | 💛 | N: No sub$            | xformed by reso ->...res
@@ -251,7 +237,7 @@ const cmd_a_1fn2P_boo_r_2fn_yay_e_3fn_err = {
 const cmd_a_1fn2P_2obj_r_2fn_yay_e_3fn_err = {
     ...cmd.e_3fn_err,
     ...cmd.r_2fn_yay,
-    ...cmd.a_1fn2P_2obj
+    ...cmd.a_1fn2P_2obj,
 }
 
 // a15 | { sub$, args, reso, erro }   | 💚 | Y: resolved Promise   | xformed by reso ->...res
@@ -264,7 +250,7 @@ const cmd_s_a_1fn2P_boo_r_2fn_yay_e_3fn_err = {
     ...cmd.e_3fn_err,
     ...cmd.r_2fn_yay,
     ...cmd.a_1fn2P_boo,
-    [CMD_SUB$] : "cmd_s_a_1fn2P_boo_r_2fn_yay_e_3fn_err"
+    [CMD_SUB$]: "cmd_s_a_1fn2P_boo_r_2fn_yay_e_3fn_err",
 }
 
 // a15 | { sub$, args, reso, erro }   | 💚 | Y: resolved Promise   | xformed by reso ->...res
@@ -277,16 +263,16 @@ const cmd_s_a_P2obj_r_2fn_yay_e_3fn_err = {
     ...cmd.e_3fn_err,
     ...cmd.r_2fn_yay,
     ...cmd.a_P2obj,
-    [CMD_SUB$] : "cmd_s_a_P2obj_r_2fn_yay_e_3fn_err"
+    [CMD_SUB$]: "cmd_s_a_P2obj_r_2fn_yay_e_3fn_err",
 }
 
 const cmd_unknown = {
-    na_key     : "val",
+    na_key: "val",
     ...cmd.a_P2obj,
-    [CMD_SUB$] : "cmd_unknown"
+    [CMD_SUB$]: "cmd_unknown",
 }
 
-/** 
+/**
  * Consider instead of thunk being ad-hoc stream:
  * - all function args are resolved with acc (1st parameter)
  * - args can be either static {...} or functional
@@ -294,7 +280,7 @@ const cmd_unknown = {
  * - either way, the CMD_SUB$ key is type checked:
  *   - if typeof CMD_SUB$ === 'string': regular Command
  *   - if CMD_SUB$.subscribe || CMD_SUB$.subscribeTopic:
- *     ad-hoc stream 
+ *     ad-hoc stream
  */
 
 // prettier-ignore
@@ -483,7 +469,7 @@ describe(`multiplex`, () => {
             cmd_s_r_2fn_yay,
             cmd_s_e_3fn_err,
             cmd_r_2fn_yay_e_3fn_err,
-            cmd_s_r_2fn_yay_e_3fn_err
+            cmd_s_r_2fn_yay_e_3fn_err,
         ]
 
         await spool(Task)
@@ -499,7 +485,7 @@ describe(`multiplex`, () => {
         O$.subscribe({ next: fn_1 })
 
         const spool = multiplex(O$)
-        const Task = [ cmd_s_a_0fn2P_2pri, cmd_s_a_1fn2P_boo, cmd_r_2fn_yay, cmd_e_3fn_err ]
+        const Task = [cmd_s_a_0fn2P_2pri, cmd_s_a_1fn2P_boo, cmd_r_2fn_yay, cmd_e_3fn_err]
 
         await spool(Task)
 
@@ -516,15 +502,15 @@ describe(`multiplex`, () => {
         const Task = [
             cmd_a_obj, // { key: "lorem" }
             cmd.a_async, // async x => await a_P(x)
-            cmd_s_a_1fn2P_2obj // A => a_P({ key: A.key + " -> a_1fn2P_2obj" }) }
+            cmd_s_a_1fn2P_2obj, // A => a_P({ key: A.key + " -> a_1fn2P_2obj" }) }
         ]
 
         await spool(Task)
 
         expect(fn_1.mock.results.length).toBe(1)
         expect(fn_1.mock.results[0].value).toMatchObject({
-            [CMD_ARGS] : { key: "lorem  -> a_1fn2P_2obj" },
-            [CMD_SUB$] : "cmd_s_a_1fn2P_2obj"
+            [CMD_ARGS]: { key: "lorem  -> a_1fn2P_2obj" },
+            [CMD_SUB$]: "cmd_s_a_1fn2P_2obj",
         })
     })
     test(`3: Subtask with a single dispatch`, async () => {
@@ -533,21 +519,21 @@ describe(`multiplex`, () => {
         O$.subscribe({ next: fn_1 })
         const spool = multiplex(O$)
 
-        const SUBTASK = ({ key }) => [ { [CMD_ARGS]: ({ key }) => ({ key: key + "-> SUBTASK was here!" }) } ]
+        const SUBTASK = ({ key }) => [{ [CMD_ARGS]: ({ key }) => ({ key: key + "-> SUBTASK was here!" }) }]
 
         const Task = [
             cmd_a_obj, // { key: "lorem" }
             cmd.a_async, // async x => await a_P(x)
             SUBTASK,
-            cmd_s_a_1fn2P_2obj // A => a_P({ key: A.key + " -> a_1fn2P_2obj" }) }
+            cmd_s_a_1fn2P_2obj, // A => a_P({ key: A.key + " -> a_1fn2P_2obj" }) }
         ]
 
         await spool(Task)
 
         expect(fn_1.mock.results.length).toBe(1)
         expect(fn_1.mock.results[0].value).toMatchObject({
-            [CMD_ARGS] : { key: "lorem -> SUBTASK was here! -> a_1fn2P_2obj" },
-            [CMD_SUB$] : "cmd_s_a_1fn2P_2obj"
+            [CMD_ARGS]: { key: "lorem -> SUBTASK was here! -> a_1fn2P_2obj" },
+            [CMD_SUB$]: "cmd_s_a_1fn2P_2obj",
         })
     })
     test(`4: Primitives aren't dispatched`, async () => {
@@ -562,7 +548,7 @@ describe(`multiplex`, () => {
             cmd_a_obj, // { args: { key: "lorem" } }
             cmd_a_prim, // { args: 2 } -> warn => no dispatch
             cmd.a_async, // { args: async x => await a_P(x) } -> no dispatch
-            { [CMD_SUB$]: "noop", [CMD_ARGS]: x => x }
+            { [CMD_SUB$]: "noop", [CMD_ARGS]: x => x },
         ]
 
         await spool(Task)
@@ -570,8 +556,8 @@ describe(`multiplex`, () => {
         expect(warned_1.mock.calls.length).toBe(1) // doesn't warn after error
         expect(fn_1.mock.results.length).toBe(1)
         expect(fn_1.mock.results[0].value).toMatchObject({
-            [CMD_ARGS] : { key: "lorem " }, // initial reduce(fn, {}) empty accumulator remains
-            [CMD_SUB$] : "noop"
+            [CMD_ARGS]: { key: "lorem " }, // initial reduce(fn, {}) empty accumulator remains
+            [CMD_SUB$]: "noop",
         })
     })
 })

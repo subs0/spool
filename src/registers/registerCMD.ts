@@ -2,11 +2,11 @@
  * @module commands/register
  */
 
-import { map } from "@thi.ng/transducers"
+//import { map } from "@thi.ng/transducers"
 import { isFunction } from "@thi.ng/checks"
-import { ISubscribable, Subscription, stream, ISubscription, Stream, PubSub, ISubscriber } from "@thi.ng/rstream"
+import { stream } from "@thi.ng/rstream"
 
-import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, Command, ICommand, ICommandObject } from "@-0/keys"
+import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK, ICommand, ICommandObject } from "@-0/keys"
 import { xKeyError, diff_keys, stringify_fn } from "@-0/utils"
 
 import { out$ } from "../core"
@@ -16,7 +16,7 @@ import { out$ } from "../core"
  * the out$ stream - hooked together during registration
  * (i.e., `registerCMD`)
  */
-export const log$: Subscription<any, any> = stream()
+export const log$ = stream()
 
 /**
  *
@@ -25,8 +25,8 @@ export const log$: Subscription<any, any> = stream()
  * push values into the command stream and trigger the work
  * registered.
  */
-export const forwardUpstreamCMD$ = (command: Command, downstream: PubSub<any>) => {
-    const upstream: ISubscribable<any> | ISubscriber<any> = command[CMD_SRC$]
+export const forwardUpstreamCMD$ = (command, downstream) => {
+    const upstream = command[CMD_SRC$]
     const sub$ = command[CMD_SUB$]
     const args = command[CMD_ARGS]
     const isFn = isFunction(args)
@@ -74,28 +74,29 @@ if your Command is for data acquisition/transformation only,
 you can, e.g., run$.next(${cmd}) without registration.
 `
 
-/**
- * TODO: enable dynamic typechecking on static defined
- * CMD_ARGs (either {...} or ({...}) => ({...})) during
- * incoming to stream. Possibly in registerCMD:
- * ```
- * if (dev) log$.next(x)
- * ```
- */
-const warnOnIncongruentInput = (work_params, sub$) => (args, CMD) => {
-    const args_params = Object.keys(args)
-    let missing = work_params.reduce((a, c) => (args_params.some(x => x === c) ? a : a.concat(c)), [])
-    if (!missing.length) return
-    console.warn(
-        `Command { \`${CMD_SUB$}\`: '${sub$}' } missing argument${
-            missing.length === 1 ? "" : "s"
-        } specified by its \`${CMD_WORK}\` handler: ${missing.map(x => `\`${x}\``)}
+///**
+// * TODO: enable dynamic typechecking on static defined
+// * CMD_ARGs (either {...} or ({...}) => ({...})) during
+// * incoming to stream. Possibly in registerCMD:
+// * ```
+// * if (dev) log$.next(x)
+// * ```
+// */
+//const warnOnIncongruentInput = (work, sub$) => (args, CMD) => {
+//    const work_params = get_shallow_static_destructured_params(work, CMD)
+//    const args_params = Object.keys(args)
+//    let missing = work_params.reduce((a, c) => (args_params.some(x => x === c) ? a : a.concat(c)), [])
+//    if (!missing.length) return
+//    console.warn(
+//        `Command { \`${CMD_SUB$}\`: '${sub$}' } missing argument${
+//            missing.length === 1 ? "" : "s"
+//        } specified by its \`${CMD_WORK}\` handler: ${missing.map(x => `\`${x}\``)}
 
-${stringify_fn(CMD, 2)}
-        `
-    )
-    //  return args_params
-}
+//${stringify_fn(CMD, 2)}
+//        `
+//    )
+//    //  return args_params
+//}
 
 /**
  *
@@ -171,7 +172,7 @@ export const registerCMD = (command: ICommand, dev = true): ICommandObject => {
      */
     if (out$.topics.has(sub$)) {
         console.warn(`⚠ REGISTRATION FAILED: ${CMD_SUB$}: ${sub$} already registered! ⚠`)
-        return null
+        return command
     }
     const args = command[CMD_ARGS]
     const erro = command[CMD_ERRO]

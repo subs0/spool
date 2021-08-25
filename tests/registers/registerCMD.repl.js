@@ -1,4 +1,5 @@
-let STRIP_COMMENTS = /(\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s*=[^,\)]*(('(?:\\'|[^'\r\n])*')|("(?:\\"|[^"\r\n])*"))|(\s*=[^,\)]*))/gm
+let STRIP_COMMENTS =
+    /(\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s*=[^,\)]*(('(?:\\'|[^'\r\n])*')|("(?:\\"|[^"\r\n])*"))|(\s*=[^,\)]*))/gm
 
 let ARGUMENT_NAMES = /([^\s,]+)/g
 
@@ -35,8 +36,6 @@ export function get_param_names(func) {
     })
     return done
 }
-
-// TODO: implement into registerCMD -> check for unknown args -> throw
 
 const CONST = "something"
 // prettier-ignore

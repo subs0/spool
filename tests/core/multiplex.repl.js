@@ -8,8 +8,6 @@ import { CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SRC$, CMD_SUB$, CMD_WORK } from "@-0/
 
 /**
  *
- * TODO:
- * 1. Create Commands with varying combinations of properties, e.g.:
  *
  *  No. | COMBINATION                                        | Err? | Description
  *      | ---                                                |---   | ---
@@ -38,7 +36,7 @@ import { CMD_ARGS, CMD_ERRO, CMD_RESO, CMD_SRC$, CMD_SUB$, CMD_WORK } from "@-0/
  */
 
 const error = new Error("my error")
-const result = new EquivMap([ [ error, "error" ] ]).get(error) || "NA"
+const result = new EquivMap([[error, "error"]]).get(error) || "NA"
 
 const operator = null && "butt"
 operator //?

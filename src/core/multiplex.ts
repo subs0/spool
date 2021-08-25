@@ -2,13 +2,13 @@
  * @module core
  */
 
-import { isFunction, isPromise, isArray } from "@thi.ng/checks"
-import { pubsub, Subscription, PubSub, ISubscription } from "@thi.ng/rstream"
+import { isFunction, isArray } from "@thi.ng/checks"
+import { pubsub } from "@thi.ng/rstream"
 import { EquivMap } from "@thi.ng/associative"
+//import { getIn } from "@thi.ng/paths"
 
-import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK } from "@-0/keys"
-import { stringify_type, xKeyError, key_index_err, diff_keys, stringify_fn } from "@-0/utils"
-import { getIn } from "@thi.ng/paths"
+import { CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_WORK } from "@-0/keys"
+import { stringify_type, stringify_fn } from "@-0/utils"
 import { no_args_error, NA_keys, noSubEr, noEroEr, err_str, task_not_array_error } from "./errors"
 
 // prettier-ignore
@@ -324,14 +324,15 @@ export const multiplex = _out$ => task_array =>
  * User-land event dispatch stream
  *
  * This stream is directly exposed to users. Any one-off
- * Commands `next`ed into this stream are sent to the
- * `cmd$` stream. Arrays of Commands (Tasks) are sent to
- * the `task$` stream.
+ * Commands `next`ed into this stream are sent to the `cmd$`
+ * stream. Arrays of Commands (Tasks) are sent to the
+ * `task$` stream.
  *
- * TODO: add examples,`beforeunload` event handler within #4
- *    (orphan): SEE https://youtu.be/QQukWZcIptM and enable
- *    ctx.run.cancel() via external or internal events
- *    (e.g., popstate / { sub$:  "cancel" })
+ * FIXME: add `beforeunload` event handler within #4 for
+ * long-running fetch ops (orphan): SEE
+ * https://youtu.be/QQukWZcIptM and enable ctx.run.cancel()
+ * via external or internal events (e.g., popstate / { sub$:
+ * "cancel" })
  *
  */
 export const run$ = pubsub({
