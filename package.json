@@ -2,7 +2,7 @@
     "name": "@-0/spool",
     "author": "Logan Powell",
     "license": "MIT",
-    "version": "0.3.30",
+    "version": "0.3.31",
     "description": "SPA framework built on top of http://thi.ng/umbrella ecosystem",
     "main": "./lib/index.js",
     "type": "module",
@@ -31,8 +31,8 @@
         "access": "public"
     },
     "dependencies": {
-        "@-0/keys": "^0.3.39",
-        "@-0/utils": "^0.3.40"
+        "@-0/keys": "^0.3.40",
+        "@-0/utils": "^0.3.41"
     },
     "peerDependencies": {
         "@thi.ng/paths": "^4.2.13",
@@ -48,19 +48,19 @@
         "@thi.ng/rstream": "^6.0.20",
         "@thi.ng/transducers": "^7.9.1",
         "@types/jest": "^27.0.1",
-        "@types/node": "^16.7.1",
+        "@types/node": "^16.7.2",
         "@typescript-eslint/eslint-plugin": "^4.29.3",
         "@typescript-eslint/parser": "^4.29.3",
-        "babel-jest": "^27.0.6",
+        "babel-jest": "^27.1.0",
         "cross-env": "^7.0.3",
         "eslint": "^7.32.0",
         "eslint-plugin-jest": "^24.4.0",
         "gh-pages": "^3.2.3",
-        "jest": "^27.0.6",
+        "jest": "^27.1.0",
         "prettier": "^2.3.2",
         "ts-jest": "^27.0.5",
         "tslib": "^2.3.1",
-        "typescript": "^4.3.5"
+        "typescript": "^4.4.2"
     },
     "prettier": {
         "singleQuote": false,
