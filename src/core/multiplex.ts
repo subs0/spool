@@ -304,7 +304,7 @@ export const multiplex = _out$ => task_array =>
                   try {
                       // ensures accumulator is preserved
                       // between stack calls
-                      const subtask = [{ [CMD_ARGS]: acc }, ...c(acc), { [CMD_ARGS]: A => ({ ...acc, ...A }) }]
+                      const subtask = [{ [CMD_ARGS]: acc }, ...c(acc)]
                       //  subtask.unshift({ [CMD_ARGS]: acc })
                       // recur
                       return multiplex(_out$)(subtask)
