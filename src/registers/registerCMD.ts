@@ -51,7 +51,7 @@ export const forwardUpstreamCMD$ = (command, downstream) => {
             downstream.next(isFn ? load(x) : load())
         },
         error: e => {
-            console.warn(`error from upstream \`${CMD_SRC$}\`: ${upstream.id}:`, e)
+            console.warn(`registerCMD (forwardUpstreamCMD$): Error from upstream \`${CMD_SRC$}\`: ${upstream.id}:`, e)
             return false
         },
     })

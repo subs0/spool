@@ -73,7 +73,7 @@ export const processArgs = async (acc, args) => {
         case "PRIMITIVE": case "OBJECT": case "ERROR": case "ARRAY":
             return { args_type, args }
         case "BINARY": case "N-ARY":
-            console.warn(`${CMD_ARGS} function arity !== 1: ${stringify_fn(args)}`)
+            console.warn(`${CMD_ARGS} function arity > 1: ${stringify_fn(args)}`)
             break
         case "UNARY":
             return await processArgs(acc, args(acc))
