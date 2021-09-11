@@ -59,20 +59,23 @@ export const forwardUpstreamCMD$ = (command, downstream) => {
 
 const err_str = "command Registration `registerCMD`"
 
-const no_work_error = cmd => `
-Error registering 
-${stringify_fn(cmd)}
-Commands with no \`${CMD_WORK}\` handler 
-can/need not be registered:
-
-\`${CMD_WORK}\`: registers side-effecting handlers
-
-Without the \`${CMD_WORK}\` handler, nothing will be done 
-when this Command is triggered.
-
-if your Command is for data acquisition/transformation only, 
-you can, e.g., run$.next(${cmd}) without registration.
-`
+const no_work_error = cmd => {
+    const { [CMD_SUB$]: sub, ...no_sub } = cmd
+    return `
+    Error registering 
+    ${stringify_fn(cmd)}
+    Commands with no \`${CMD_WORK}\` handler 
+    can/need not be registered:
+    
+    \`${CMD_WORK}\`: registers side-effecting handlers
+    
+    Without the \`${CMD_WORK}\` handler, nothing will be done 
+    when this Command is triggered.
+    
+    if your Command is for data acquisition/transformation only, 
+    you can, e.g., run$.next(${stringify_fn(no_sub)}) without registration.
+    `
+}
 
 ///**
 // * TODO: enable dynamic typechecking on static defined
