@@ -2,7 +2,7 @@
     "name": "@-0/spool",
     "author": "Logan Powell",
     "license": "MIT",
-    "version": "0.3.40",
+    "version": "0.3.41",
     "description": "SPA framework built on top of http://thi.ng/umbrella ecosystem",
     "main": "./lib/index.js",
     "type": "module",
@@ -31,8 +31,8 @@
         "access": "public"
     },
     "dependencies": {
-        "@-0/keys": "^0.3.49",
-        "@-0/utils": "^0.3.50"
+        "@-0/keys": "^0.3.50",
+        "@-0/utils": "^0.3.51"
     },
     "peerDependencies": {
         "@thi.ng/paths": "^4.2.14",
