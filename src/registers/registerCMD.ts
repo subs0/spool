@@ -162,7 +162,7 @@ const no_work_error = cmd => {
  * ])
  * //=> 🧞 says: whatever you ask for is my command
  */
-export const registerCMD = (command: ICommand, dev = true): ICommandObject | ICommand => {
+export const registerCMD = (command: ICommand, dev = true) => {
     const sub$ = command[CMD_SUB$]
     /**
      * 0: {"_SET_STATE" => Subscription}
