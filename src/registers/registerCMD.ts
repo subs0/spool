@@ -164,7 +164,24 @@ const no_work_error = cmd => {
  */
 export const registerCMD = (command: ICommand, dev = true) => {
     const sub$ = command[CMD_SUB$]
-    /**
+
+    const args = command[CMD_ARGS]
+    const erro = command[CMD_ERRO]
+    const reso = command[CMD_RESO]
+    const src$ = command[CMD_SRC$]
+    const work = command[CMD_WORK]
+    const CMD = reso
+    ? {
+          [CMD_SUB$]: sub$,
+          [CMD_ARGS]: args,
+          [CMD_RESO]: reso,
+          [CMD_ERRO]: erro,
+      }
+    : {
+          [CMD_SUB$]: sub$,
+          [CMD_ARGS]: args,
+      }
+          /**
      * 0: {"_SET_STATE" => Subscription}
      * 1: {"_NOTIFY_PRERENDER_DOM" => Subscription}
      * 2: {"_SET_LINK_ATTRS_DOM" => Subscription}
@@ -175,14 +192,8 @@ export const registerCMD = (command: ICommand, dev = true) => {
      */
     if (out$.topics.has(sub$)) {
         console.warn(`⚠ REGISTRATION FAILED: ${CMD_SUB$}: ${sub$} already registered! ⚠`)
-        return command
+        return CMD
     }
-    const args = command[CMD_ARGS]
-    const erro = command[CMD_ERRO]
-    const reso = command[CMD_RESO]
-    const src$ = command[CMD_SRC$]
-    const work = command[CMD_WORK]
-
     if (!work) throw new Error(no_work_error(command))
 
     const known_CMD_props = [CMD_SUB$, CMD_ARGS, CMD_RESO, CMD_ERRO, CMD_SRC$, CMD_WORK]
@@ -195,17 +206,7 @@ export const registerCMD = (command: ICommand, dev = true) => {
 
     if (src$) forwardUpstreamCMD$(command, out$)
 
-    const CMD = reso
-        ? {
-              [CMD_SUB$]: sub$,
-              [CMD_ARGS]: args,
-              [CMD_RESO]: reso,
-              [CMD_ERRO]: erro,
-          }
-        : {
-              [CMD_SUB$]: sub$,
-              [CMD_ARGS]: args,
-          }
+    
 
     out$.subscribeTopic(sub$, {
         next: x => {
