@@ -2,7 +2,7 @@
     "name": "@-0/spool",
     "author": "Logan Powell",
     "license": "MIT",
-    "version": "0.3.55",
+    "version": "0.3.56",
     "description": "SPA framework built on top of http://thi.ng/umbrella ecosystem",
     "main": "./lib/index.js",
     "type": "module",
@@ -31,36 +31,35 @@
         "access": "public"
     },
     "dependencies": {
-        "@-0/keys": "^0.3.68",
-        "@-0/utils": "^0.3.65"
+        "@-0/keys": "^0.3.72",
+        "@-0/utils": "^0.3.66"
     },
     "peerDependencies": {
-        "@thi.ng/paths": "^5.1.13",
-        "@thi.ng/rstream": "^7.2.16"
+        "@thi.ng/paths": "^5.1.14",
+        "@thi.ng/rstream": "^7.2.17"
     },
     "devDependencies": {
         "@babel/plugin-transform-modules-commonjs": "^7.18.6",
-        "@thi.ng/arrays": "^2.3.4",
-        "@thi.ng/associative": "6.2.5",
-        "@thi.ng/atom": "^5.1.13",
+        "@thi.ng/arrays": "^2.3.5",
+        "@thi.ng/associative": "6.2.6",
+        "@thi.ng/atom": "^5.1.14",
         "@thi.ng/checks": "^3.2.4",
-        "@thi.ng/paths": "^5.1.13",
-        "@thi.ng/rstream": "^7.2.16",
-        "@thi.ng/transducers": "^8.3.12",
-        "@types/jest": "^28.1.7",
-        "@types/node": "^18.7.6",
-        "@typescript-eslint/eslint-plugin": "^5.33.1",
-        "@typescript-eslint/parser": "^5.33.1",
-        "babel-jest": "^28.1.3",
+        "@thi.ng/paths": "^5.1.14",
+        "@thi.ng/rstream": "^7.2.17",
+        "@thi.ng/transducers": "^8.3.13",
+        "@types/jest": "^29.0.0",
+        "@types/node": "^18.7.14",
+        "@typescript-eslint/eslint-plugin": "^5.36.1",
+        "@typescript-eslint/parser": "^5.36.1",
+        "babel-jest": "^29.0.1",
         "cross-env": "^7.0.3",
-        "eslint": "^8.22.0",
-        "eslint-plugin-jest": "^26.8.3",
+        "eslint": "^8.23.0",
+        "eslint-plugin-jest": "^27.0.1",
         "gh-pages": "^4.0.0",
-        "jest": "^28.1.3",
+        "jest": "^29.0.1",
         "prettier": "^2.7.1",
-        "ts-jest": "^28.0.8",
         "tslib": "^2.4.0",
-        "typescript": "^4.7.4"
+        "typescript": "^4.8.2"
     },
     "prettier": {
         "singleQuote": false,

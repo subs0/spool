@@ -1,11 +1,10 @@
 {
-    "preset": "ts-jest",
+    "preset": "@babel/preset-env",
     "testEnvironment": "jest-environment-jsdom",
     "testMatch": ["**/**/*.test.(js|ts|tsx)"],
     "verbose": true,
     "transform": {
-        "^.+\\.js$": "babel-jest",
-        "^.+\\.(ts|tsx)$": "ts-jest"
+        "\\.[jt]sx?$": "babel-jest"
     },
     "transformIgnorePatterns": ["node_modules/?!(@-0)"],
     "watchPathIgnorePatterns": ["^.+\\.repl.(ts|js)$"]
