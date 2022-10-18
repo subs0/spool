@@ -4,6 +4,11 @@ Spule
 ~ Scottish: **[ˈspül]** variant of Spool
 ~ German: **[ˈʃpuːlə]** Coil, Reel
 
+## Value Propositions:
+- Easily compose side-effecting logic with asynchronous code
+- Concentrate your impure functions in a single reduction
+- Inter functional/task state is an accumulator (ephemeral)
+
 ## Introduction: State MGMT and Side-Effects
 
 All too often, state management (MGMT) is an "add-on", an
