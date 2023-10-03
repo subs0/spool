@@ -215,27 +215,70 @@ providing a DX that is versatile, modular and composable.
 | `erro` | Lambda | Promise `args` rejection handler                 | Promises     |
 | `src$` | Stream | Upstream/source stream ([advanced](#advanced))   | optional     |
 
+## Stream Architecture:
+
+`run$` is the primary event stream exposed to the user via
+the `ctx` object injected into every `hdom` component the
+command stream is the only way the user changes anything in
+`hurl`
+
+### Multiplexer
+
+```diff
+run$.next(x)  >- |------c---[ a,b,a ]-c-----a----c->
+derailleur    >- |ps|---1---0---------1-----1----1->
+task$ stream  >- |t0|-------[ a~~b~~~~~~~a ]------->
+cmd$  stream  >- |t1|---c-------------c-----a----c-> 
+out$  stream  >- ---|ps|c-----a--b----c--a--a----c->
+
+Userland Handlers:
+
+registerCMD a >- ---|ta|------*----------*--*------>
+registerCMD b >- ---|tb|---------*----------------->
+registerCMD c >- ---|tc|*-------------*----------*-> 
+```
+
+### Descriptions
+
+- `run$.next(x)`: userland stream emmissions
+- derailleur    : test for collection of commands vs. single command
+- `task$`       : collections are ushered to preserve the order of commands
+- `cmd$`        : a single command is sent straight away
+- `out$`        : `registerCMD`s automatically subscribed based on `sub$` value
+
+### `work` Handlers
+
+- `out$`: this is the stream to which the user (and framework)
+    attaches `work` handlers. Handlers receive events they
+    subscribe to as topics based on a `sub$` key in a Command
+    object.
+
+#### Built-in Commands/Tasks:
+
+- `SET_STATE`: Global state update Command
+- `URL__ROUTE`: Routing Task
+- "FLIP" :
+    [F.L.I.P.](https://aerotwist.com/blog/flip-your-animations/)
+    animations Commands for route/page transitiions
+
 ## The `_SET_STATE` Command (built-in)
 
-TODO
+Sets state asynchronously
 
-### Shorthand Symbols Glossary (`spule` surface grammar)
+### `run$`
 
-Now that we've seen some examples of Commands and Tasks in use, we'll use a shorthand syntax for describing Task/Command signatures as a compact conveyance when convenient.
+User-land event dispatch stream
 
-| Symbol              | Description                               |
-| ------------------- | ----------------------------------------- |
-| `{C}`               | Command `Object`                          |
-| `{*}`               | `Object`                                  |
-| `#`                 | Primitive value (boolean, string, number) |
-| `{?}`               | Promise                                   |
-| `{A}`               | Accumulator `Object`                      |
-| `(*) =>`            | Lambda with any number of parameters      |
-| `(+) =>`            | Non-nullary lambda                        |
-| `(1) =>`            | Unary lambda                              |
-| `(0) =>`            | Nullary lambda (aka "thunk")              |
-| `[{C},,]` or `[T]`  | Task                                      |
-| `[,,T,,]` or `[sT]` | Subtask                                   |
+This stream is directly exposed to users. Any one-off
+Commands `next`ed into this stream are sent to the
+`cmd$` stream. Arrays of Commands (Tasks) are sent to
+the `task$` stream.
+
+<iframe
+  src="https://stackblitz.com/edit/spule-spa?embed=1&file=index.js&hideExplorer=1"
+  style="width:100%; height:900px; border:0; border-radius: 4px; overflow:hidden;"
+  allow="accelerometer; gyroscope"
+></iframe>
 
 ## Router
 
@@ -468,108 +511,6 @@ let task = [
 ]
 ```
 
-## Stream Architecture:
-
-`run$` is the primary event stream exposed to the user via
-the `ctx` object injected into every `hdom` component the
-command stream is the only way the user changes anything in
-`hurl`
-
-### Marble Diagram
-
-```diff
-0>- |------c-----------c--[~a~b~a~]-a----c-> : calls
-1>- |ps|---1-----------1----------0-1----1-> : run$
-2>- |t0|---------a~~b~~~~~~~~~~~a~|--------> : task$
-3>- |t1|---c-----------c------------a----c-> : cmd$
-4>- ---|ps|c-----a--b--c--------a---a----c-> : out$
-
-Userland Handlers:
-
-a>- ---|ta|------*--------------*---*------> : registerCMD
-b>- ---|tb|---------*----------------------> : registerCMD
-c>- ---|tc|*-----------*-----------------*-> : registerCMD
-```
-
-### Streams
-
--   `0>-`: userland stream emmissions (`run`)
--   `1>-`: pubsub forking stream (if emmission has a `sub$`)
--   `2>-`: pubsub = `false`? -> `task$` stream
--   `3>-`: pubsub = `true`? -> `cmd$` stream
--   `4>-`: pubsub emits to `registerCMD` based on `sub$` value
-
-### `work` Handlers
-
--   `4>-` this is the stream to which the user (and framework)
-    attaches `work` handlers. Handlers receive events they
-    subscribe to as topics based on a `sub$` key in a Command
-    object.
-
-#### Built-in Commands/Tasks:
-
--   `SET_STATE`: Global state update Command
--   `URL__ROUTE`: Routing Task
--   "FLIP" :
-    [F.L.I.P.](https://aerotwist.com/blog/flip-your-animations/)
-    animations Commands for route/page transitiions
-
-### `run$`
-
-User-land event dispatch stream
-
-This stream is directly exposed to users. Any one-off
-Commands `next`ed into this stream are sent to the
-`cmd$` stream. Arrays of Commands (Tasks) are sent to
-the `task$` stream.
-
-<iframe
-  src="https://stackblitz.com/edit/spule-spa?embed=1&file=index.js&hideExplorer=1"
-  style="width:100%; height:900px; border:0; border-radius: 4px; overflow:hidden;"
-  allow="accelerometer; gyroscope"
-></iframe>
-
-## Constants Glossary
-
-| URL component key | description                            |
-| ----------------- | -------------------------------------- |
-| DOM               | DOM node target                        |
-| URL               | full URL/route                         |
-| URL_path          | route path as array                    |
-| URL_domain        | top-level domain as array              |
-| URL_subdomain     | subdomain as array                     |
-| URL_query         | node querystring parsed URL parameters |
-| URL_hash          | hash string to/from URL if any         |
-| URL_data          | data returned by router                |
-| URL_page          | page component to render URL_data with |
-
-| router config key | description                                      |
-| ----------------- | ------------------------------------------------ |
-| HEAD              | metadata wrapper for router (targets DOM <head>) |
-| BODY              | data wrapper for router                          |
-| prep              | pre-router behavior Task/Command injection       |
-| post              | post=router behavior Task/Command injection      |
-| prefix            | URL path string for the router to ignore         |
-| router            | @thi.ng/EquivMap pattern matching function       |
-
-| Command key (🔎) | description                                     |
-| ---------------- | ----------------------------------------------- |
-| sub\$            | Command primary/unique key (topic subscription) |
-| args             | signal passing intra-Task Command state value   |
-| reso             | Promise resolution handler                      |
-| erro             | Promise rejection handler                       |
-| work             | where Commands' actual "work" is done           |
-| src\$            | upstream (source stream) Command connector      |
-
-| `boot` config key | description                                 |
-| ----------------- | ------------------------------------------- |
-| run               | primary userland dispatch function          |
-| state             | global immutable state container            |
-| root              | DOM mount node for application              |
-| app               | root application view                       |
-| trace             | enable logging of every global state update |
-| draft             | state shape scaffolding                     |
-
 ### More Pattern Matching
 
 ```js
@@ -645,6 +586,68 @@ guarded_matcher({ a: "b", c: 4 })
             the output is really just data (and lambdas). This is
             going in the direction of "code as data"
 -   lots'o'examples
+
+
+## Constants Glossary
+
+| URL component key | description                            |
+| ----------------- | -------------------------------------- |
+| DOM               | DOM node target                        |
+| URL               | full URL/route                         |
+| URL_path          | route path as array                    |
+| URL_domain        | top-level domain as array              |
+| URL_subdomain     | subdomain as array                     |
+| URL_query         | node querystring parsed URL parameters |
+| URL_hash          | hash string to/from URL if any         |
+| URL_data          | data returned by router                |
+| URL_page          | page component to render URL_data with |
+
+| router config key | description                                      |
+| ----------------- | ------------------------------------------------ |
+| HEAD              | metadata wrapper for router (targets DOM <head>) |
+| BODY              | data wrapper for router                          |
+| prep              | pre-router behavior Task/Command injection       |
+| post              | post=router behavior Task/Command injection      |
+| prefix            | URL path string for the router to ignore         |
+| router            | @thi.ng/EquivMap pattern matching function       |
+
+| Command key (🔎) | description                                     |
+| ---------------- | ----------------------------------------------- |
+| sub\$            | Command primary/unique key (topic subscription) |
+| args             | signal passing intra-Task Command state value   |
+| reso             | Promise resolution handler                      |
+| erro             | Promise rejection handler                       |
+| work             | where Commands' actual "work" is done           |
+| src\$            | upstream (source stream) Command connector      |
+
+| `boot` config key | description                                 |
+| ----------------- | ------------------------------------------- |
+| run               | primary userland dispatch function          |
+| state             | global immutable state container            |
+| root              | DOM mount node for application              |
+| app               | root application view                       |
+| trace             | enable logging of every global state update |
+| draft             | state shape scaffolding                     |
+
+
+### Shorthand Symbols Glossary (`spule` surface grammar)
+
+Now that we've seen some examples of Commands and Tasks in use, we'll use a shorthand syntax for describing Task/Command signatures as a compact conveyance when convenient.
+
+| Symbol              | Description                               |
+| ------------------- | ----------------------------------------- |
+| `{C}`               | Command `Object`                          |
+| `{*}`               | `Object`                                  |
+| `#`                 | Primitive value (boolean, string, number) |
+| `{?}`               | Promise                                   |
+| `{A}`               | Accumulator `Object`                      |
+| `(*) =>`            | Lambda with any number of parameters      |
+| `(+) =>`            | Non-nullary lambda                        |
+| `(1) =>`            | Unary lambda                              |
+| `(0) =>`            | Nullary lambda (aka "thunk")              |
+| `[{C},,]` or `[T]`  | Task                                      |
+| `[,,T,,]` or `[sT]` | Subtask                                   |
+
 
 ## Credits
 
